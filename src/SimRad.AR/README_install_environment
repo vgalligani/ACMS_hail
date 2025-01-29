@@ -1,0 +1,23 @@
+Para la instalación en MACOS tuve que downgrade python, disutils, y numpy. 
+A su vez remove 
+matplotlib.use('Agg') 
+from code! 
+
+#------------------------------------------------------
+# Create conda environment in this computer: 
+#------------------------------------------------------
+
+$conda create -n SimRad.AR python=3.9 spyder matplotlib numpy=1.19.5 scipy netcdf4
+$conda install setuptools=60      
+$conda install -c conda-forge gfortran 
+pytmatrix: 
+$python setup.py install
+pyart: 
+$conda install conda-forge::arm_pyart                                                 
+wrf-python
+$python setup.py install
+
+
+
+ 
+
