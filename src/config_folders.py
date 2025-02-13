@@ -9,28 +9,27 @@ def config_folders(server):
         # Leer wrfout y variables de interes: control-ndg
         #folder_WSM6  = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFout_WSM6_v4.5.2_all/'
         # re-run with correct namelist.input TWICE: uno con el correct ratio, y 2 con el correct domain: domain2
+        
+        # ---- WRFOUT files
         folders['WSM6_domain2']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain2/'
         folders['WSM6_domain3']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3/'
-        folders['WSM6_domain3_NoahMP']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP/'
+        folders['WSM6_domain3_NoahMP']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP/'        
+        folders['WSM6_domain3_NoahMP_10min']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP_10min'
         folders['WSM6_domain4_NoahMP']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain4_NoahMP/'
+        folders['P3_3MOM_LF_domain3_NoahMP'] = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain3_NoahMP' 
+        folders['P3_3MOM_LF_domain3_NoahMP_10min']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain3_NoahMP_10min'
+        folders['P3_3MOM_LF_domain3_NoahMP_highres']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain3_NoahMP_highres/'
         
-        
-        # VOLVER A CORRER: 
-        folders['P3_3MOM_LF'] = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFout_P3_3MOM_LF_v4.5.2/' 
-        folders['P3_3MOM_noLF'] = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFout_P3_3MOM_noLF_v4.5.2/' 
-            
-        
-        folders['savedir'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/WRF_WSM6/'
+        # ------ main savedir 
         # Within this folder, define the name of a sub-folder according to date
+        folders['savedir'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/'
         folders['savedir']       = os.path.join(folders['savedir'],datetime.datetime.now().strftime('%d%m%Y'))
-        # If the latter sub-folder does not exist, create it.
         if not os.path.exists(folders['savedir']):
             os.makedirs(folders['savedir'])
+
         folders['tempsavedir'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/tmp/'
         folders['output_gif_path'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/gifs/'
-    
-    
-        folders['savedirP3'] = '/home/vito.galligani/Work/Studies/HAILCASE_10112018/Plots/WRF_P3/'
+        
         folders['csapr2_dir'] = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
         folders['rma1_dir'] = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RMA1/'
         folders['cswr_dir'] = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSWRdata/'
@@ -83,13 +82,31 @@ def config_folders(server):
         if not os.path.exists( os.path.join(folders['save_dir_compare'],'RadarSim')):
             os.makedirs(os.path.join(folders['save_dir_compare'],'RadarSim'))        
             
+
+        if not os.path.exists( os.path.join(folders['save_dir_compare'],'OBS/RMA1')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],'OBS/RMA1'))    
+        if not os.path.exists( os.path.join(folders['save_dir_compare'],'OBS/CSAPR2')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],'OBS/CSAPR2'))       
+            
+            
+        EXPs = ['WSM6_domain2', 'WSM6_domain3', 'WSM6_domain3_NoahMP', 'WSM6_domain4_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 
+                'P3_3MOM_LF_domain3_NoahMP_10min', 'WSM6_domain3_NoahMP_10min', 'P3_3MOM_LF_domain3_NoahMP_highres']
+        for EXP in EXPs:    
+            if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP)):
+                os.makedirs(os.path.join(folders['save_dir_compare'],EXP))                    
+            if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP+'/winds')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/winds'))      
+            if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP+'/convergence')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/convergence'))   
+            if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP+'/helicity')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/helicity'))                           
+
             
         # SimRad.AR data
         wdir = '/home/vito.galligani/datosmunin3/Work/SimRad.AR/data/'
         folders['LUT_WSM6'] = wdir+'UNIX_WSM6_LOOKUPTABLE_airmatrix_graupelAR1_ALLBANDS.pckl'
         
-    
-        
+            
         
     else:
         # Leer wrfout y variables de interes: control-ndg
