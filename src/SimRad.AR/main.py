@@ -34,7 +34,7 @@ mp    = 6
 time  = '20:00'
 rfile = 'cfrad.20181110_200709.0000_to_20181110_201358.0000_RMA1_0301_01.nc'
 
-
+#------------------------------------------------------------------------------
 folders=config_folders.config_folders('yakaira')
 wrfoutfile = os.path.join(folders[EXP], 'wrfout_d02_2018-11-10_'+time+':00')
 
@@ -52,7 +52,8 @@ if run_once == 1:
     [lon, lat, qr, qs, qg, z_level, Zh_r_central, Zh_s_central, Zh_g_central, Zh_t_central, 
         Zdr_t_central, Zdr_r_central, Zdr_s_central, Zdr_g_central, 
         KDP_t_central, elev_center, azimuth_center, z_FOR_theta_radar, Zh_r_WRFGRID, 
-        Zh_s_WRFGRID, Zh_g_WRFGRID, Zh_tot_WRFGRID] = wrf2radar_simple.main_wrf2radar(radar_site=3, mp=mp, ncfile=wrfoutfile, ftable=folders['LUT_WSM6'])
+        Zh_s_WRFGRID, Zh_g_WRFGRID, Zh_tot_WRFGRID] = wrf2radar_simple.main_wrf2radar(radar_site=3, 
+                    mp=mp, ncfile=wrfoutfile, ftable=folders['LUT_WSM6'])
                            
 # Plot the median of Zhh. vs. ZDR, y Zhh vs. KDP for C-band, S-band and observations
 bandID = 1          # default plots for C-band

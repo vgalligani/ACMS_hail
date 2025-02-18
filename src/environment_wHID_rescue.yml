@@ -8,7 +8,6 @@ dependencies:
   - alabaster=0.7.12=py_0
   - alsa-lib=1.2.7.2=h166bdaf_0
   - appdirs=1.4.4=pyh9f0ad1d_0
-  - arm_pyart=1.14.1=py310h5764c6d_0
   - arrow=1.2.3=pyhd8ed1ab_0
   - asttokens=2.1.0=pyhd8ed1ab_0
   - atomicwrites=1.4.1=pyhd8ed1ab_0
@@ -324,7 +323,6 @@ dependencies:
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.2=h6239696_4
   - pip:
-    - arm-pyart==0.0.0
     - astroid==2.12.12
     - black==22.10.0
     - brotlipy==0.7.0
@@ -334,7 +332,6 @@ dependencies:
     - chardet==5.0.0
     - contourpy==1.0.6
     - cryptography==38.0.3
-    - csu-radartools==1.4.0.dev0
     - cython==0.29.32
     - debugpy==1.6.3
     - docutils==0.19
@@ -364,8 +361,6 @@ dependencies:
     - scipy==1.9.3
     - shapely==1.8.5.post1
     - sip==6.7.4
-    - skewt==1.2.0
-    - spyder-kernels==2.2.1
     - tornado==6.2
     - ujson==5.5.0
     - unicodedata2==15.0.0
