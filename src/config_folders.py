@@ -22,6 +22,7 @@ def config_folders(server):
         folders['P3_3MOM_LF_domain3_NoahMP_lowres']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain3_NoahMP_lowres/'
 
         folders['P3_3MOM_LF_domain5_NoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain5_NoahMP/'
+        folders['THOM_domain3_NoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/THOM_domain3_NoahMP/'
 
         
         # ------ main savedir 
@@ -95,7 +96,7 @@ def config_folders(server):
             
         EXPs = ['WSM6_domain2', 'WSM6_domain3', 'WSM6_domain3_NoahMP', 'WSM6_domain4_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 
                 'P3_3MOM_LF_domain3_NoahMP_10min', 'WSM6_domain3_NoahMP_10min', 'P3_3MOM_LF_domain3_NoahMP_highres', 
-                'P3_3MOM_LF_domain3_NoahMP_lowres', 'P3_3MOM_LF_domain5_NoahMP']
+                'P3_3MOM_LF_domain3_NoahMP_lowres', 'P3_3MOM_LF_domain5_NoahMP', 'THOM_domain3_NoahMP']
         for EXP in EXPs:    
             if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP)):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP))                    
