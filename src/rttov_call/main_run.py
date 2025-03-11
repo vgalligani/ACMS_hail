@@ -42,16 +42,22 @@ from config import config_folders
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def main(makeProfs, instrument, HHtime, mp_version): 
+def main(makeProfs, instrument, HHtime, mp_version, server): 
 
-    plotpath, folders = config_folders()
+    plotpath, folders = config_folders(server)
     
+    if 'yakaira' in server: 
+        upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
+                
+    elif 'cnrm' in server:
+        upfolder    = '/home/galliganiv/'   
+            
     #--------------------------------------------
     # Filter some profiles 
     # find_pixels(568.3049)
     #--------------------------------------------
-    skipProfs_monotonic = filter_pixels_monotonic()
-    skipProfs = filter_pixels()
+    skipProfs_monotonic = filter_pixels_monotonic(mp_version, HHtime, server)
+    skipProfs = filter_pixels(mp_version, HHtime, server)
     for iprofflag in skipProfs_monotonic:    
             skipProfs.append(iprofflag)
     
@@ -60,16 +66,17 @@ def main(makeProfs, instrument, HHtime, mp_version):
     #--------------------------------------------
     if makeProfs == 1: 
         # Make profiles and run rttov on terminal 
-        run_IFS_rttov14(ipnd=1, mp_version=mp_version, HHtime=HHtime, sensor_config=instrument, Flagged_Profs=skipProfs)
+        ipnd=1
+        run_IFS_rttov14(ipnd, mp_version, HHtime, instrument, skipProfs, server)
     
     else:
        
         if mp_version == 6:
             mp_physics = 'WRF-WSM6'
-        
+            ncfile     = upfolder+'WRFOUT/WSM6_domain3_NoahMP/wrfout_d02_2018-11-10_'+HHtime
+
         flag_name = 'rttov14_'+mp_physics+'_2018-11-10_'+HHtime
         flag2name = flag_name+'_'+instrument+'satzen_OBSinterp'
-        
         
         #atm_em1.0rttov14_WRF-WSM6_2018-11-10_20:30_MHSsatzen_OBSinterp.dat
         
@@ -83,12 +90,6 @@ def main(makeProfs, instrument, HHtime, mp_version):
         skips = [2325, 8947] #, 2325, 2761, 2796, 3647]
         for iprofflag in skips:    
             skipProfs.append(iprofflag)
-            
-        # WRFOUT 
-        upfolder   = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
-        mp_physics = 'WRF-WSM6'
-        ncfolder   = upfolder+'update'#'WRFout_WSM6_v4.5.2/'
-        ncfile     = ncfolder+'wrfout_d02_2018-11-10_'+HHtime+':00'
             
         # Load all profiles
         A    = read_wrf(ncfile)
@@ -144,25 +145,25 @@ def make_plots(makeProfs, mp_version):
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def make_profs(EXP,mp_version):
+def make_profs(instrument, HHtime, mp_version, server):
 
-    main(EXP=EXP2, makeProfs=1, instrument='AMSR2', HHtime='20', mp_version=mp_version)  
+    #main(EXP=EXP2, makeProfs=1, instrument='AMSR2', HHtime='20', mp_version=mp_version)  
+    makeProfs = 1
+    main(makeProfs, instrument, HHtime, mp_version, server)  
     
     return
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-EXP0 = ''        # Surface emissivity == 1 (initial test a nadie ya le importa)
-EXP1 = 'WRF_WSM6_20181110_20_AMSR2'+ '_atlas' +'/output_tb_45'     # TELSEM ATLAS and fixed satze rttov run
-EXP2 = 'WRF_WSM6_20181110_20_AMSR2'+ '_atlas_satzen_input' +'/output_tb_AMSR2'  # TELSEM ATLAS and satzen input AMSR2 rttov run
+#EXP0 = ''        # Surface emissivity == 1 (initial test a nadie ya le importa)
+#EXP1 = 'WRF_WSM6_20181110_20_AMSR2'+ '_atlas' +'/output_tb_45'     # TELSEM ATLAS and fixed satze rttov run
+#EXP2 = 'WRF_WSM6_20181110_20_AMSR2'+ '_atlas_satzen_input' +'/output_tb_AMSR2'  # TELSEM ATLAS and satzen input AMSR2 rttov run
+
+make_profs('MHS', '20:30', 6, 'cnrm')
+
 
 # from terminal run run_example_fwd_WRF_HAIL_atlas_satzeninput.sh before switching to makeProfs=0 
-make_plots(makeProfs=1, mp_version=6)
-
-
-
-# no entiendo porque los resultados son dfierentes?  es porque le puse 55 en vez de 45? CHECK 
-
+#make_plots(makeProfs=1, mp_version=6)
 
             
 
