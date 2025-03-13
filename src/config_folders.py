@@ -142,7 +142,14 @@ def config_folders(server):
         folders['THOM_domain3_NoahMP']                  = home_dir+'THOM_domain3_NoahMP/'
         folders['WDM6_domain3_NoahMP']                  = home_dir+'WDM6_domain3_NoahMP/'
         folders['P3_3MOM_LF_domain7_NoahMP']            = home_dir+'P3_3MOM_LF_domain7_NoahMP/'
+        
+        folders['initcond_fromwrf_domain3_WSM6_d01P3_54'] = home_dir+'initcond_fromwrf_domain3_WSM6_d01P3_54/'
+        folders['initcond_fromwrf_domain3_WSM6_d01P3_54_test2'] = home_dir+'initcond_fromwrf_domain3_WSM6_d01P3_54_test2/'
+        folders['initcond_fromwrf_domain3_WSM6_d01P3_54_test3'] = home_dir+'initcond_fromwrf_domain3_WSM6_d01P3_54_test3/'
+        folders['initcond_fromwrf_domain3_WSM6_d01P3_54_1700'] = home_dir+'initcond_fromwrf_domain3_WSM6_d01P3_54_1700/'
 
+        folders['initcond_fromwrf_domain3_WSM6_d01P3_54_test4'] = home_dir+'initcond_fromwrf_domain3_WSM6_d01P3_54_test4/'
+        folders['test'] = home_dir+'test/P3_3MOM_LF_domain3_NoahMP/'
         
         # ------ main savedir 
         # Within this folder, define the name of a sub-folder according to date
@@ -172,7 +179,11 @@ def config_folders(server):
         EXPs = ['WSM6_domain2', 'WSM6_domain3', 'WSM6_domain3_NoahMP', 'WSM6_domain4_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 
                 'P3_3MOM_LF_domain3_NoahMP_10min', 'WSM6_domain3_NoahMP_10min', 'P3_3MOM_LF_domain3_NoahMP_highres', 
                 'P3_3MOM_LF_domain3_NoahMP_lowres', 'P3_3MOM_LF_domain5_NoahMP', 'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 
-                'P3_3MOM_LF_domain7_NoahMP']
+                'P3_3MOM_LF_domain7_NoahMP','initcond_fromwrf_domain3_WSM6_d01P3_54_test2', 
+                'initcond_fromwrf_domain3_WSM6_d01P3_54_test3', 
+                'initcond_fromwrf_domain3_WSM6_d01P3_54', 'initcond_fromwrf_domain3_WSM6_d01P3_54_1700',
+                'initcond_fromwrf_domain3_WSM6_d01P3_54_test4','test']
+        
         for EXP in EXPs:    
             if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP)):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP))                    

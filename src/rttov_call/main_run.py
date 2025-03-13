@@ -87,7 +87,7 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         EXP='check'
         #WSM6_atlas_file   = np.genfromtxt(folders['read_out_dir']+EXP)
     
-        skips = [2325, 8947] #, 2325, 2761, 2796, 3647]
+        skips = [2325, 8947, 10247] #, 2325, 2761, 2796, 3647] #13/03/2025: skip 10247? 
         for iprofflag in skips:    
             skipProfs.append(iprofflag)
             
