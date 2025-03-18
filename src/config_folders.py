@@ -26,6 +26,9 @@ def config_folders(server):
         folders['WDM6_domain3_NoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WDM6_domain3_NoahMP/'
         folders['P3_3MOM_LF_domain7_NoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain7_NoahMP/'
 
+        folders['WSM6_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP_YSU/'
+
+
         
         # ------ main savedir 
         # Within this folder, define the name of a sub-folder according to date
@@ -42,7 +45,7 @@ def config_folders(server):
         folders['cswr_dir'] = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSWRdata/'
         
         folders['save_dir_compare'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/'
-        folders['save_dir_compare'] = os.path.join(folders['save_dir_compare'],datetime.datetime.now().strftime('%d%m%Y'))
+        #folders['save_dir_compare'] = os.path.join(folders['save_dir_compare'],datetime.datetime.now().strftime('%d%m%Y'))
 
 
         csapr2_dir = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
@@ -99,7 +102,9 @@ def config_folders(server):
         EXPs = ['WSM6_domain2', 'WSM6_domain3', 'WSM6_domain3_NoahMP', 'WSM6_domain4_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 
                 'P3_3MOM_LF_domain3_NoahMP_10min', 'WSM6_domain3_NoahMP_10min', 'P3_3MOM_LF_domain3_NoahMP_highres', 
                 'P3_3MOM_LF_domain3_NoahMP_lowres', 'P3_3MOM_LF_domain5_NoahMP', 'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 
-                'P3_3MOM_LF_domain7_NoahMP']
+                'P3_3MOM_LF_domain7_NoahMP','WSM6_domain3_NoahMP_YSU']
+        
+        
         for EXP in EXPs:    
             if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP)):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP))                    
@@ -150,18 +155,21 @@ def config_folders(server):
 
         folders['initcond_fromwrf_domain3_WSM6_d01P3_54_test4'] = home_dir+'initcond_fromwrf_domain3_WSM6_d01P3_54_test4/'
         folders['test'] = home_dir+'test/P3_3MOM_LF_domain3_NoahMP/'
+        folders['WSM6_domain3_NoahMP_12h']                  = home_dir+'WSM6_domain3_NoahMP_start1200/'        
+        folders['WSM6_domain3_NoahMP_YSU']                  = home_dir+'WSM6_domain3_NoahMP_YSU/'
+
         
         # ------ main savedir 
         # Within this folder, define the name of a sub-folder according to date
-        folders['save_dir_compare']       = '/home/galliganiv/Work/HAILCASE_10112018/Plots/'
-        folders['save_dir_compare']       = os.path.join(folders['save_dir_compare'],datetime.datetime.now().strftime('%d%m%Y'))
+        folders['save_dir_compare']       = '/home/galliganiv/Work/HAILCASE_10112018/Plots'
+        #folders['save_dir_compare']       = os.path.join(folders['save_dir_compare'],datetime.datetime.now().strftime('%d%m%Y'))
         if not os.path.exists(folders['save_dir_compare']):
             os.makedirs(folders['save_dir_compare'])
 
         #folders['tempsavedir']     = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/tmp/'
         #folders['output_gif_path'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/gifs/'
         #folders['csapr2_dir']      = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
-        #folders['rma1_dir']        = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RMA1/'
+        folders['rma1_dir']         = '/home/galliganiv/Work/HAILCASE_10112018/Data/RMA1/'
         #folders['cswr_dir']        = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSWRdata/'
         
         #csapr2_dir = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
@@ -182,7 +190,8 @@ def config_folders(server):
                 'P3_3MOM_LF_domain7_NoahMP','initcond_fromwrf_domain3_WSM6_d01P3_54_test2', 
                 'initcond_fromwrf_domain3_WSM6_d01P3_54_test3', 
                 'initcond_fromwrf_domain3_WSM6_d01P3_54', 'initcond_fromwrf_domain3_WSM6_d01P3_54_1700',
-                'initcond_fromwrf_domain3_WSM6_d01P3_54_test4','test']
+                'initcond_fromwrf_domain3_WSM6_d01P3_54_test4','test', 'WSM6_domain3_NoahMP_12h',
+                'WSM6_domain3_NoahMP_YSU']
         
         for EXP in EXPs:    
             if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP)):
@@ -200,7 +209,6 @@ def config_folders(server):
         # SimRad.AR data
         #wdir = '/home/vito.galligani/datosmunin3/Work/SimRad.AR/data/'
         #folders['LUT_WSM6'] = wdir+'UNIX_WSM6_LOOKUPTABLE_airmatrix_graupelAR1_ALLBANDS.pckl'
-        
             
         
     else:
