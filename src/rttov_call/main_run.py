@@ -44,8 +44,10 @@ import matplotlib.pyplot as plt
 import Tools2Plot as T2P
 from Tools2RunRTTOV import read_wrf, run_IFS_rttov14, filter_pixels, find_pixels, filter_pixels_monotonic
 from config import config_folders
-
-
+#import Plots4Analysis as P4A
+from netCDF4 import Dataset
+import wrf
+import xarray as xr
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -95,14 +97,13 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
 
         flag_name = 'rttov14_'+instrument+'_'+mp_physics+'_2018-11-10_'+HHtime
     
+        # Processed data:
+        processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+    
         # Read file
         outfolder = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input/'
         outfile   = 'output_cs_tb_'+instrument
         WSM6_file = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+outfile)
-        
-        #skips = [2325, 8947, 10251, 10247] #, 2325, 2761, 2796, 3647] #13/03/2025: skip 10247?         
-        #for iprofflag in skips:    
-        #    skipProfs.append(iprofflag)    
         
         # Load all profiles
         A    = read_wrf(ncfile)
@@ -118,6 +119,40 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         tb1   = np.zeros( (nchan,rows,cols) );   tb1[:]=np.nan 
         
         
+        # Save some aux WRF data to dataframe
+        domainlons = [-65.5,-62]
+        domainlats = [-33.5,-31.3] 
+        # Need to interpolate first to common z_level grid 
+        z_interp =  [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 
+                     9, 9.5, 10, 10.5, 11, 11.5, 12, 12.5, 13, 13.5, 14, 14.5, 15, 15.5, 16, 16.5, 17, 17.5, 18, 18.5, 19, 19.5, 20] 
+        
+        #[qr, qs, qi, qc, qg, qitot, z_lev] = P4A.return_qxs_WSM6(, 
+        #                            domainlons, domainlats, z_interp)
+        breakpoint()
+        ncwrf = Dataset(ncfile,'r') 
+        qr = wrf.vinterp(ncwrf, np.squeeze(ncwrf.variables["QRAIN"][0,:,:,:]  ),  "ght_msl", z_interp)          
+        qs = wrf.vinterp(ncwrf, np.squeeze(ncwrf.variables["QSNOW"][0,:,:,:]  ),  "ght_msl", z_interp)          
+        qg = wrf.vinterp(ncwrf, np.squeeze(ncwrf.variables["QGRAUP"][0,:,:,:] ),  "ght_msl", z_interp)   
+    
+        # Organizar todo en un dataframe:
+        # ME FALTA GUARDAR INTEGRATED QX 
+        ds =  xr.Dataset({
+             "wrf_lat":    (["lat","lon"], lats), 
+             "wrf_lon":    (["lat","lon"], lons),
+             "WRF_qr":     (["var","lat","lon"],  A['rwc']),
+             "WRF_qs":     (["var","lat","lon"],  A['swc']),
+             "WRF_qg":     (["var","lat","lon"],  A['gwc']),   
+             "WRF_intqr":  (["var","lat","lon"],  qr.data),
+             "WRF_intqs":  (["var","lat","lon"],  qs.data),
+             "WRF_intqg":  (["var","lat","lon"],  qg.data),
+             "WRF_LandMask":   (["lat","lon"],  A['LANDMASK']) 
+             })
+        ds.to_netcdf(processedFolder+mp_physics+'data_PREprocessed.nc', 'w')
+
+
+             
+    
+      
         counter = 0
         rttov_counter = 0
         for i in range(A['XLONG'].shape[0]): 
@@ -140,12 +175,13 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
                     tb0[:,i,j] = WSM6_file[rttov_counter-1,:]
                     #tb1[:,i,j] = WSM6_atlas_file[rttov_counter-1,:]
         
-        breakpoint()
         #----- SIMPLE PLOTS: make plots with integrated qx forzen y rain, y todos los canales
         # y stats. comparar diferencia clear sky con obs.# improves with atlas? 
         if 'MHS' in instrument: 
             
-            T2P.plot_simple_MHS(lons, lats, q, tb0, plotpath,server)
+            # Plot simulation (WRF resolution) and Observations (real resolution)
+            ds = T2P.MHS_cs_sims(lons, lats, q, tb0, plotpath, server)
+            ds.to_netcdf(processedFolder+outfile+'_processed.nc', 'w')
             #T2P.plot_simple_MHS_comparison(lons, lats, q, tb0, tb1, plotpath, 'mhs',server)
             
         if 'AMSR' in instrument: 
