@@ -204,7 +204,10 @@ def config_folders(server):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/helicity'))                           
             if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP+'/vertical_crossSection')):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/vertical_crossSection'))         
+            if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP+'/Sondeos')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/Sondeos'))         
                 
+                            
             
         # SimRad.AR data
         #wdir = '/home/vito.galligani/datosmunin3/Work/SimRad.AR/data/'

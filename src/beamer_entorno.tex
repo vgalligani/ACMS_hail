@@ -1,0 +1,135 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{tikz,etoolbox}
+\usepackage{underscore}
+
+%-------------- DOMAIN02
+%------------------------------------------------------------------------------
+% Define time steps and experiments
+\def\timesEXP{18:00, 18:30, 19:00, 19:30, 20:00, 20:30, 21:00, 21:30}
+\def\experiments{"WSM6_domain3_NoahMP", "P3_3MOM_LF_domain3_NoahMP","initcond_fromwrf_domain3_WSM6_d01P3_54_test2"}
+
+\begin{document}
+
+
+\newcommand{\filepathWSM}[1]{/home/galliganiv/Work/HAILCASE_10112018/Plots/WSM6_domain3_NoahMP/Sondeos/#1}
+\newcommand{\filepathP}[1]{/home/galliganiv/Work/HAILCASE_10112018/Plots/P3_3MOM_LF_domain3_NoahMP/Sondeos/#1}
+\newcommand{\filepathPwWSM}[1]{/home/galliganiv/Work/HAILCASE_10112018/Plots/initcond_fromwrf_domain3_WSM6_d01P3_54_test2/Sondeos/#1}
+
+% title slide
+\begin{frame}
+    \title{WRF Radiosondes (10-11-2018)}
+    \maketitle
+    \textbf{Experiments: WSM6(ERA5), P3(ERA5), P3(WSM6 initialization)}
+\end{frame}
+
+% loop thorugh time steps and experiments for CORDOBA location
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \foreach \ii in {0,1,2,3,4} {%
+        \begin{frame}
+            \frametitle{Cordoba. Time = \t and Example lat/lon \ii}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.3\textwidth]{\filepathWSM{WSM6_domain3_NoahMPd02_\t_Cordoba_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathP{P3_3MOM_LF_domain3_NoahMPd02_\t_Cordoba_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathPwWSM{initcond_fromwrf_domain3_WSM6_d01P3_54_test2d01_\t_Cordoba_\ii.png}}
+            \end{figure}
+        \end{frame}
+    }
+}
+
+% loop thorugh time steps and experiments for CSU location
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \foreach \ii in {0,1,2,3,4} {%
+        \begin{frame}
+            \frametitle{CSU. Time = \t and Example lat/lon \ii}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.3\textwidth]{\filepathWSM{WSM6_domain3_NoahMPd02_\t_CSU_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathP{P3_3MOM_LF_domain3_NoahMPd02_\t_CSU_\ii.png}}
+                \includegraphics[width=0.3\textwidth]{\filepathPwWSM{initcond_fromwrf_domain3_WSM6_d01P3_54_test2d01_\t_CSU_\ii.png}}
+	    \end{figure}
+        \end{frame}
+    }
+}
+
+
+% loop thorugh time steps and experiments for Scout1 location
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \foreach \ii in {0,1,2,3,4} {%
+        \begin{frame}
+            \frametitle{Scout 1. Time = \t and Example lat/lon \ii}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.3\textwidth]{\filepathWSM{WSM6_domain3_NoahMPd02_\t_Scout1_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathP{P3_3MOM_LF_domain3_NoahMPd02_\t_Scout1_\ii.png}}
+                \includegraphics[width=0.3\textwidth]{\filepathPwWSM{initcond_fromwrf_domain3_WSM6_d01P3_54_test2d01_\t_Scout1_\ii.png}}
+	    \end{figure}
+        \end{frame}
+    }
+}
+
+% loop thorugh time steps and experiments for Scout2 location
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \foreach \ii in {0,1,2,3,4} {%
+        \begin{frame}
+            \frametitle{Scout2. Time = \t and Example lat/lon \ii}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.3\textwidth]{\filepathWSM{WSM6_domain3_NoahMPd02_\t_Scout2_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathP{P3_3MOM_LF_domain3_NoahMPd02_\t_Scout2_\ii.png}}
+                \includegraphics[width=0.3\textwidth]{\filepathPwWSM{initcond_fromwrf_domain3_WSM6_d01P3_54_test2d01_\t_Scout2_\ii.png}}
+	    \end{figure}
+        \end{frame}
+    }
+}
+
+% loop thorugh time steps and experiments for UI1 location
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \foreach \ii in {0,1,2,3,4} {%
+        \begin{frame}
+            \frametitle{UI1. Time = \t and Example lat/lon \ii}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.3\textwidth]{\filepathWSM{WSM6_domain3_NoahMPd02_\t_UI1_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathP{P3_3MOM_LF_domain3_NoahMPd02_\t_UI1_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathPwWSM{initcond_fromwrf_domain3_WSM6_d01P3_54_test2d01_\t_UI1_\ii.png}}
+            \end{figure}
+        \end{frame}
+    }
+}
+
+
+% loop thorugh time steps and experiments for UI2 location
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \foreach \ii in {0,1,2,3,4} {%
+        \begin{frame}
+            \frametitle{UI2. Time = \t and Example lat/lon \ii}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.3\textwidth]{\filepathWSM{WSM6_domain3_NoahMPd02_\t_UI2_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathP{P3_3MOM_LF_domain3_NoahMPd02_\t_UI2_\ii.png}}
+                \includegraphics[width=0.3\textwidth]{\filepathPwWSM{initcond_fromwrf_domain3_WSM6_d01P3_54_test2d01_\t_UI2_\ii.png}}
+	    \end{figure}
+        \end{frame}
+    }
+}
+
+% loop thorugh time steps and experiments for Villa Dolores location
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \foreach \ii in {0,1,2,3,4} {%
+        \begin{frame}
+            \frametitle{Villa Dolores. Time = \t and Example lat/lon \ii}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[width=0.3\textwidth]{\filepathWSM{WSM6_domain3_NoahMPd02_\t_VillaDolores_\ii.png}}
+		\includegraphics[width=0.3\textwidth]{\filepathP{P3_3MOM_LF_domain3_NoahMPd02_\t_VillaDolores_\ii.png}}
+                \includegraphics[width=0.3\textwidth]{\filepathPwWSM{initcond_fromwrf_domain3_WSM6_d01P3_54_test2d01_\t_VillaDolores_\ii.png}}
+	    \end{figure}
+        \end{frame}
+    }
+}
+
+\end{document}
+
+
