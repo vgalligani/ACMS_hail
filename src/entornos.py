@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 18 15:20:56 2025
-
-@author: galliganiv
-"""
-
 import os 
 import datetime
 import glob
@@ -13,7 +5,6 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 import numpy as np
 import wrf
-
 import Plots4Analysis as P4A
 import re 
 import package_functions as funs
@@ -25,480 +16,394 @@ import netCDF4 as nc
 import matplotlib.colors as mcolors
 import package_functions
 from matplotlib.cm import get_cmap
-import pandas as pd 
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import metpy.calc as mpcalc
-from metpy.cbook import get_test_data
-from metpy.plots import Hodograph, SkewT
-from metpy.units import units
-from scipy.spatial import Delaunay
+import matplotlib
 
 plt.matplotlib.rc('font', family='serif', size = 12)
 plt.rcParams['xtick.labelsize']=12
 plt.rcParams['ytick.labelsize']=12  
 
+
+
 #------------------------------------------------------------------------------
-def makesndfigure(ncfile, figuretitle, server, lat, lon):
+def figure_stad_map(fig, ax, domain, time, params, subtitle, server, WRFfolder):
+    
+    
+    #------ READ WRF variables of interest ------------------------------------
+    prefix   = 'wrfout_'+domain+'_2018-11-10_'+time+':00'
+    filename = os.path.join(WRFfolder, prefix)
+    ncfile       = Dataset(filename,'r')        
+    z            = wrf.getvar( ncfile,"z") 
+    lat          = wrf.getvar( ncfile,"lat") 
+    lon          = wrf.getvar( ncfile,"lon")
+    uvmet10      = wrf.getvar( ncfile, "uvmet10",units="kt")   # Default is ‘m s-1’.
+    wspd_wdir10  = wrf.getvar( ncfile, "wspd_wdir10") 
+    p            = wrf.getvar( ncfile, "pressure")
+    theta        = wrf.getvar( ncfile, "theta", units="K")   # potential temperature 
+    t2           = wrf.getvar( ncfile, "T2", timeidx=-1)     # 2-m temperature
+    td_2m        = wrf.getvar( ncfile, "td2")
+    ter          = wrf.getvar( ncfile, 'ter', units="m")
+    u            = wrf.getvar( ncfile, 'ua', units="kt")
+    v            = wrf.getvar( ncfile, 'va', units="kt")
+    q            = wrf.getvar( ncfile, 'QVAPOR')
+    # other calcls
+    ter_3d    = np.tile(ter.values,[41,1,1])
+    z.values  = z.values-ter.values
+    u2        = wrf.interplevel(u, z, 6000)
+    v2        = wrf.interplevel(v, z, 6000)
+    ufld      = uvmet10.isel(u_v=0)
+    vfld      = uvmet10.isel(u_v=1)
+    u2.values = u2.values-ufld.values
+    v2.values = v2.values-vfld.values
 
-    xloc, yloc = wrf.to_np(wrf.ll_to_xy(ncfile, lat, lon))
+    sounding_parameters = wrf.smooth2d(wrf.getvar( ncfile, 'cape_2d'),8)
 
+
+    #--------------------------------------------------------------------------
+    if ('td_2m' in params['VAR']):
+        VAR=td_2m
     
-    #------------------------------------------
-    radarLAT_RMA1 = -31.441389
-    radarLON_RMA1 = -64.191944
-    [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
-    [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
+    elif ('t2' in params['VAR']):
+        VAR=t2-273
     
-    # De referencia plot contour of observed simulation 
-    folders       = config_folders.config_folders(server)
-    TH_name       = 'TH'
-    file          = 'cfrad.20181110_202339.0000_to_20181110_203020.0000_RMA1_0301_01.nc'
-    radar         = pyart.io.read(os.path.join(folders['rma1_dir'], file)) 
+    elif ('CAPE' in params['VAR']):
+        VAR=sounding_parameters.isel(mcape_mcin_lcl_lfc=0)
     
-    # Configure a gatefilter to filter out copolar correlation coefficient values > 0.9
-    gatefilter = pyart.filters.GateFilter(radar)
-    gatefilter.exclude_transition()
-    gatefilter.exclude_equal('RHOHV', 0.9)    
+    elif ('Updraft_Helicity'in params['VAR']):
+        VAR = -1.*wrf.getvar(ncfile, 'updraft_helicity')
+    
+    elif ('0-1km_Storm_Relative_Helicity' in params['VAR']):
+        VAR = (wrf.getvar( ncfile, 'helicity', top=1000.0))*-1
+
+    elif ('0-3km_Storm_Relative_Helicity' in params['VAR']):
+        VAR = (wrf.getvar( ncfile, 'helicity', top=3000.0))*-1
+        
+        
+    elif ('1km_Radar_Reflectivity' in params['VAR']):
+        dbz        = wrf.getvar(ncfile, 'dbz')        
+        z.values   = z.values-ter.values
+        VAR        = wrf.interplevel(dbz, z, 1000)
+        VAR.values = np.ma.masked_less(VAR.values,5.)
+    
+    elif ('potentialTemp850' in params['VAR']):
+        eth = wrf.g_temp.get_eth(ncfile)
+        VAR = wrf.interplevel(eth, p, 850)
+    
+    elif ('convergence' in params['VAR']):
+        qfld = wrf.interplevel(q, p, 850)
+        grad_q_x,grad_q_y = np.gradient(qfld.values)
+        grad_u_x,grad_u_y = np.gradient(ufld.values)
+        grad_v_x,grad_v_y = np.gradient(vfld.values)
+        uvmet = wrf.getvar(ncfile, 'wspd_wdir', units="kt")        
+        dx=uvmet.XLAT[1,0]-uvmet.XLAT[0,0]
+        dx=dx.values*111100    
+        MFC_advect=-1.* (ufld.values*grad_q_x/dx)+(vfld.values*grad_q_y/dx)
+        MFC_conv=-1.*qfld.values*((grad_u_x/dx)+(grad_v_y/dx))
+    
+        VAR = qfld
+        VAR.values = -1.*wrf.smooth2d(86400.*1000.*(MFC_advect + MFC_conv),30)
+    
+    elif ('10mwinds' in params['VAR']):
+        VAR = wspd_wdir10[0,:,:]
+        
+    #--------------------------------------------------------------------------
 
     if 'yakaira' in server:
         prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')    
         fn = '/home/vito.galligani/Work/Tools/etopo1_bedrock.nc'
     elif 'cnrm' in server:
         prov = np.genfromtxt("provincias.txt", delimiter='')    
-        fn = 'etopo1_bedrock.nc' 
+        fn = 'etopo1_bedrock.nc'        
         
     ds = nc.Dataset(fn)
     topo_lat = ds.variables['lat'][:]
     topo_lon = ds.variables['lon'][:]
     topo_dat = ds.variables['Band1'][:]/1e3
+    
     lons_topo, lats_topo = np.meshgrid(topo_lon,topo_lat)
-    #------------------------------------------
+    
+    radarLAT_RMA1 = -31.441389
+    radarLON_RMA1 = -64.191944
+    [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
+    [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
+        
+    if ('convergence' in params['VAR']):
+        colors1 = plt.cm.YlOrRd_r(np.linspace(0, 0.8, 120))    
+        colors2 = plt.cm.PiYG(np.linspace(0.8, 0.7, 60))
+        colors = np.vstack((colors1,colors2))#, colors2, colors1))
+        cmap_conv= mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+        cmap_conv.set_over('white')
+        cmap_conv.set_under('red')
+        
+    else:
+        pcm     = ax.contourf(lon, lat,  VAR,  cmap=params['cmap'], levels=params['levels'], 
+                          vmin=params['vmin'], vmax=params['vmax'], extend='both')
+        cbar    = plt.colorbar(pcm, ax=ax, shrink=1, extend='both')
+        cbar.cmap.set_under('white')
+        
+    ax.plot(prov[:,0],prov[:,1],color='k');     
+    ax.set_xlim([-65.5,-62]); 
+    ax.set_ylim([-34.5,-31])
+    ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
+    ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
+    
+    # agrego vertical cross section selection:
+    #ax.plot(lon_points, lat_points, '-r', linewidth=1.2)
 
-    p  = wrf.getvar(ncfile, "p", units="hPa")
-    z  = wrf.getvar(ncfile, "z", units="m")
-    t  = wrf.getvar(ncfile, "tc")
-    td = wrf.getvar(ncfile, "td", units="degC")
-    u  = wrf.getvar(ncfile, "uvmet", units="kt")[0,:]
-    v  = wrf.getvar(ncfile, "uvmet", units="kt")[1,:]
-    
-    p = p.sel(south_north=yloc, west_east=xloc)
-    z = z.sel(south_north=yloc, west_east=xloc)
-    t = t.sel(south_north=yloc, west_east=xloc)
-    td = td.sel(south_north=yloc, west_east=xloc)
-    u = u.sel(south_north=yloc, west_east=xloc)
-    v = v.sel(south_north=yloc, west_east=xloc)
-    
-    # Create a figure 
-    fig = plt.figure(figsize=(12, 9), dpi=300.)
-
-    # Ascribe the figure instance to a metpy SkewT object.
-    skew = SkewT(fig)
-
-    # Set the sounding's axis parameters: in this case, -60 to +40 C
-    # for the skewed x axis and 1000-100 hPa for the logarithmic y axis.
-    # We also specify to place tick marks and labels on both axes.
-    skew.ax.set_xlim(-60.,40.)
-    skew.ax.set_ylim(1000.,100.)
-    skew.ax.tick_params(axis='both',labelsize=14)
-    
-    # Plot our fields: temperature, then dewpoint, then winds.
-    # After doing so, we add a standard set of lines to the
-    # plot: dry adiabats, moist adiabats (or pseudoadiabats),
-    # and mixing-ratio lines. Finally, we label the axes and
-    # give the plot a title.
-    skew.plot(p,t,'r',linewidth=4)
-    skew.plot(p,td,'g',linewidth=4)
-    skew.plot_barbs(p,u,v)
-    skew.plot_dry_adiabats()
-    skew.plot_moist_adiabats()
-    skew.plot_mixing_lines()
-    skew.ax.set_xlabel("Temperature (°C)", fontsize=16, weight='bold')
-    skew.ax.set_ylabel("Pressure (hPa)", fontsize=16, weight='bold')
-    skew.ax.set_title(figuretitle, fontsize=16, weight='bold')
-    
-    # Create extra subplot for map? 
-    # Create an inset axes object that is 40% width and height of the
-    # figure and put it in the upper right hand corner.
-    h = inset_axes(skew.ax, '40%', '40%', loc=1, borderpad=3) #,
-
-    ZHelev18 = radar.get_field(3, TH_name, copy=False)
-    ZHelev18[np.where(ZHelev18<4)]=np.nan
-    [lats_, lons_, _] = radar.get_gate_lat_lon_alt(3, reset_gate_coords=False, filter_transitions=False)
-    h.pcolormesh(lons_, lats_, ZHelev18, cmap=P4A.colormaps('ref'), vmin=5,  vmax=65)
-    h.plot(prov[:,0],prov[:,1],color='k'); 
-    h.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
-    h.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)        
-    h.set_xlim([-65.2,-63.2]); 
-    h.set_ylim([-32.5,-31])
-    h.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2)
-    h.scatter(lon, lat, s=100,color='k', marker='x') 
-    
-    # Show the image.
-    # plt.show()
-    
+    ax.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2)    
+    ax.set_title(subtitle+' ('+params['plottitle']+')')
+        
     return fig
 
 #------------------------------------------------------------------------------
-def generate_random_latlon(center_lat, center_lon, num_points=5, max_offset_km=30):
-    """
-    Generate random latitude/longitude points around a central point within a given distance.
-    """
-    lat_offset = (np.random.uniform(-1, 1, num_points) * max_offset_km) / 111  # Approx. 1 degree ~ 111 km
-    lon_offset = (np.random.uniform(-1, 1, num_points) * max_offset_km) / (111 * np.cos(np.radians(center_lat)))
-   
-    random_lats = center_lat + lat_offset
-    random_lons = center_lon + lon_offset
-   
-    return list(zip(random_lats, random_lons))
-
-#------------------------------------------------------------------------------
-def is_point_within_domain(pointlat, pointlon, lat_grid, lon_grid):
-    points = np.column_stack( (lat_grid.data.ravel(), lon_grid.data.ravel()) )
-    hull   = Delaunay(points)    
+def plot_all_WRF_variables(time, domain, server):
     
-    return hull.find_simplex([pointlat, pointlon]) >= 0 # check if inside
-
-#------------------------------------------------------------------------------
-def plot_sondeos(EXP, random_points, domain, title, server, sndLoc):
-
+    EXPs    = ['WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'initcond_fromwrf_domain3_WSM6_d01P3_54_test2']
+    domains = ['d02','d02','d01']
+    EXPtitle = ['WSM6', 'P3' ,'P3(WSM6init)']
+            
+    #------------------
+    colors1 = plt.cm.BrBG(np.linspace(0., 0.4, 120))
+    colors2 = plt.cm.YlOrRd(np.linspace(0.0, 0.55, 70))
+    colors3 = plt.cm.Greens(np.linspace(0.1, 0.7, 80))
+    colors4 = plt.cm.Blues(np.linspace(0.2, 0.9, 80))
+    colors = np.vstack((colors1,colors2,colors3,colors4))#, colors2, colors1))
+    cmap_td= mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+    cmap_td.set_over((0,0,0.69))
+    cmap_td.set_under((0.2,0.1,0))
+    
+    import colormaps_new as cmapss
+    colors1=np.array(cmapss._HomeyerRainbow_data[0:80])
+    colors2=np.array(cmapss._HomeyerRainbow_data[100:230])
+    colors3=np.array(cmapss._viridis_data[0:50])
+    colors = np.vstack((colors3,colors1,colors2))
+    cmap_temp = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+     
+    # CAPE
+    colors1 = plt.cm.YlOrRd(np.linspace(0.2, 0.65, 50))
+    colors2 = plt.cm.Reds(np.linspace(0.6, 1.0, 64))
+    colors3 = plt.cm.Purples(np.linspace(0.5, 0.9, 64))
+    colors = np.vstack((colors1,colors2,colors3))#, colors2, colors1))
+    cmap_cape= mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+    cmap_cape.set_over((0.3,0,1))
+    cmap_cape.set_under((1,1,1))
+    
+    #------------------
     folders   = config_folders.config_folders(server)
-    WRFfolder = folders[EXP]
+
     save_dir_compare = folders['save_dir_compare']
 
-    if 'yakaira' in server:
-        prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')    
-        fn = '/home/vito.galligani/Work/Tools/etopo1_bedrock.nc'
-    elif 'cnrm' in server:
-        prov = np.genfromtxt("provincias.txt", delimiter='')    
-        fn = 'etopo1_bedrock.nc'  
-        
-    prefix   = 'wrfout_'+domain+'_2018-11-10_'+title
-    filename = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-11-10_'+title+':00')
-    ncfile   = Dataset(filename,'r') 
-    wrflat      = wrf.getvar( ncfile,"lat") 
-    wrflon      = wrf.getvar( ncfile,"lon")
+    # #-------------------------------------------------------------------------
+    # # Convergence
+    # #-------------------------------------------------------------------------     
+    # colors1 = plt.cm.YlOrRd_r(np.linspace(0, 0.8, 120))    
+    # colors2 = plt.cm.PiYG(np.linspace(0.8, 0.7, 60))
+    # colors = np.vstack((colors1,colors2))#, colors2, colors1))
+    # cmap_conv= mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+    # cmap_conv.set_over('white')
+    # cmap_conv.set_under('red')
+    # params = { 'VAR': 'convergence', 
+    #             'cmap': cmap_conv,
+    #             'levels': np.arange(-600,20,100.), 
+    #             'vmin': -600,
+    #             'vmax': 0,
+    #             'plottitle': '850 hPa moisture convergence '+time, 
+    #             'filename': save_dir_compare+'/Comparison/Convergence_'+'Comparison_'+time+'.png' }    
     
-    # Loop a bit randomly around the snd geo location
-    latloniteraton = 0 
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)    
 
-    for i in range(len(random_points)):
-        
-        lat = round(random_points[i][0],2)
-        lon = round(random_points[i][1],2)
 
-        # check if lat/lon within domain:
-        if (is_point_within_domain(lat, lon, wrflat, wrflon) ) == 1:     
+    # #-------------------------------------------------------------------------
+    # # Plot Td
+    # #-------------------------------------------------------------------------
+    # params = { 'VAR': 'td_2m', 
+    #            'cmap': cmap_td,
+    #            'levels': np.arange(-12,28,2), 
+    #            'vmin': -12,
+    #            'vmax': 28,
+    #            'plottitle': 'Td 2m '+time, 
+    #            'filename': save_dir_compare+'/Comparison/td2m_'+'Comparison_'+time+'.png' }
 
-            figuretitle = EXP+'('+domain+')'+' sounding at (' + str(lat) + ', ' + str(lon) + ') '+title+' UTC'
-            fig         = makesndfigure(ncfile, figuretitle, server, lat, lon)
-            figurename  = EXP+domain+'_'+title+'_'+sndLoc+'_'+str(latloniteraton)
-            fig.savefig(save_dir_compare+'/'+EXP+'/Sondeos/'+figurename+'.png', dpi=300,transparent=False,bbox_inches='tight')
-            latloniteraton = latloniteraton + 1
-            plt.close(fig)
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')
+    # plt.close(fig)
+    
+    # #-------------------------------------------------------------------------
+    # # Plot T
+    # #-------------------------------------------------------------------------    
+    # params = { 'VAR': 't2', 
+    #             'cmap': cmap_temp,
+    #             'levels': np.arange(0,42,2), 
+    #             'vmin': 0,
+    #             'vmax': 40,
+    #             'plottitle': 'T 2m '+time, 
+    #             'filename': save_dir_compare+'/Comparison/t2m_'+'Comparison_'+time+'.png' }    
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')
+    # plt.close(fig)
+    
+    # #-------------------------------------------------------------------------
+    # # 0-6 km MLCAPE
+    # #-------------------------------------------------------------------------        
+    # params = { 'VAR': 'CAPE', 
+    #             'cmap': cmap_cape,
+    #             'levels': [100,500,1000,1500,2000,2500,3000,3500,4000], 
+    #             'vmin': 100,
+    #             'vmax': 4000,
+    #             'plottitle': 'MLCAPE 0-6 km (J kg-1) '+time, 
+    #             'filename': save_dir_compare+'/Comparison/mlCAPE_'+'Comparison_'+time+'.png' }    
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)
+
+    # #-------------------------------------------------------------------------
+    # # Updraft_Helicity
+    # #-------------------------------------------------------------------------  
+    # params = { 'VAR': 'Updraft_Helicity', 
+    #             'cmap':  get_cmap("gist_stern_r"),
+    #             'levels':  np.arange(0,80,10), 
+    #             'vmin': -10,
+    #             'vmax': 80,
+    #             'plottitle': 'Updraft Helicity (m2 s-2) '+time,  
+    #             'filename': save_dir_compare+'/Comparison/Updraft_Helicity_'+'Comparison_'+time+'.png' }    
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)
+    
+    #-------------------------------------------------------------------------
+    # Storm relative Helicity
+    #-------------------------------------------------------------------------  
+    params = { 'VAR': '0-1km_Storm_Relative_Helicity', 
+                'cmap':  get_cmap("cubehelix_r"),
+                'levels': np.arange(50,750,50), 
+                'vmin': 50,
+                'vmax': 750,
+                'plottitle': '0-1 km AGL storm relative helicity (m2s-2) '+time, 
+                'filename': save_dir_compare+'/Comparison/1km_Storm_Relative_Helicity_'+'Comparison_'+time+'.png' }    
+    
+    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    counter=0
+    for EXPi in EXPs:
+        WRFfolder = folders[EXPi]
+        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+        counter=counter+1
+    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    plt.close(fig)
+    
+    params = { 'VAR': '0-3km_Storm_Relative_Helicity', 
+                'cmap':  get_cmap("cubehelix_r"),
+                'levels': np.arange(50,950,50), 
+                'vmin': 50,
+                'vmax': 950,
+                'plottitle': '0-3 km AGL storm relative helicity (m2s-2) '+time, 
+                'filename': save_dir_compare+'/Comparison/3km_Storm_Relative_Helicity_'+'Comparison_'+time+'.png' }    
+    
+    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    counter=0
+    for EXPi in EXPs:
+        WRFfolder = folders[EXPi]
+        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+        counter=counter+1
+    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    plt.close(fig)    
+    
+    # #-------------------------------------------------------------------------
+    # # 3km Zh
+    # #-------------------------------------------------------------------------  
+    # params = { 'VAR': '0-1km_Radar_Reflectivity', 
+    #             'cmap':  get_cmap("gist_ncar"),
+    #             'levels': np.arange(5,75,5.), 
+    #             'vmin': 5,
+    #             'vmax': 75,
+    #             'plottitle': '1 km AGL radar reflectivity '+time, 
+    #             'filename': save_dir_compare+'/Comparison/1kRadarReflectivity_'+'Comparison_'+time+'.png' }    
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)    
+    
+    # #-------------------------------------------------------------------------
+    # # 850hPa Equiv. Potential temperature
+    # #-------------------------------------------------------------------------      
+    # params = { 'VAR': 'potentialTemp850', 
+    #             'cmap': matplotlib.cm.get_cmap("viridis_r"),
+    #             'levels': np.arange(290,380,10.), 
+    #             'vmin': 290,
+    #             'vmax': 380,
+    #             'plottitle': 'Equiv. Potential Temp. 850 hPa '+time, 
+    #             'filename': save_dir_compare+'/Comparison/EquivPotentialTemp_'+'Comparison_'+time+'.png' }    
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)    
+
+    # #-------------------------------------------------------------------------
+    # # Winds
+    # #-------------------------------------------------------------------------  
+    # params = { 'VAR': '10mwinds', 
+    #             'cmap': matplotlib.cm.get_cmap("YlOrBr"),
+    #             'levels': np.linspace(4.0, 24.0, 6), 
+    #             'vmin': 4,
+    #             'vmax': 24,
+    #             'plottitle': '10m wind '+time, 
+    #             'filename': save_dir_compare+'/Comparison/Winds_'+'Comparison_'+time+'.png' }    
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)  
+
+
+
     return
 
 #------------------------------------------------------------------------------
-def lista_datos():
-    
-    # Research Soundings: 
-    # CSU, UI1, UI2, CSWR, CACTI (Villa Dolores)
-    # Operational Upper-Air Sounding: Cordoba, Mendoza, Neuquen, 
-    #                   Santa Maria, Santa Rosa, Santo Domingo CL, 
-    #                   Villa Maria del Rio Seco
-    stations = [
-        {"Sondeo": "Cordoba", "Latitude":-31.298, "Longitude":-64.212}, 
-        #{"Sondeo": "Santa Rosa", "Latitude":-36.591, "Longitude":-64.279}, 
-        #{"Sondeo": "Villa Maria del Rio Seco", "Latitude":-29.906, "Longitude":-63.726},
-        {"Sondeo": "CSU", "Latitude":-31.817, "Longitude":-64.285}, 
-        {"Sondeo": "UI1", "Latitude":-31.541, "Longitude":-64.604}, 
-        {"Sondeo": "UI2", "Latitude":-31.997, "Longitude":-64.223}, 
-        {"Sondeo": "Scout1", "Latitude":-31.729, "Longitude":-63.845},      # OJO TRANSECTA
-        {"Sondeo": "Scout2", "Latitude":-31.877, "Longitude":-64.321},       # OJO TRANSECTA
-        {"Sondeo": "Villa Dolores", "Latitude":-31.950, "Longitude":-65.150}
-        ]
-    
-    df = pd.DataFrame(stations)
-
-    return df 
-
 #------------------------------------------------------------------------------
-def plot_domain_SurfObs(server):
-    
-    folders   = config_folders.config_folders(server)
-    save_dir_compare = folders['save_dir_compare']+'/SurfaceObs/'
-    if not os.path.exists(save_dir_compare):
-        os.makedirs(save_dir_compare)       
-    
-    if 'yakaira' in server:
-        prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')    
-        fn = '/home/vito.galligani/Work/Tools/etopo1_bedrock.nc'
-    elif 'cnrm' in server: 
-        prov = np.genfromtxt("provincias.txt", delimiter='')    
-        fn = 'etopo1_bedrock.nc'        
-         
-    df = lista_datos() 
-           
-    ds = nc.Dataset(fn)
-    topo_lat = ds.variables['lat'][:]
-    topo_lon = ds.variables['lon'][:]
-    topo_dat = ds.variables['Band1'][:]/1e3
-    
-    lons_topo, lats_topo = np.meshgrid(topo_lon,topo_lat)
-   
-    radarLAT_RMA1 = -31.441389
-    radarLON_RMA1 = -64.191944
-    [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
-    [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
-    
-    # De referencia plot contour of observed simulation 
-    TH_name       = 'TH'
-    file          = 'cfrad.20181110_202339.0000_to_20181110_203020.0000_RMA1_0301_01.nc'
-    radar         = pyart.io.read(os.path.join(folders['rma1_dir'], file)) 
-
-    # Configure a gatefilter to filter out copolar correlation coefficient values > 0.9
-    gatefilter = pyart.filters.GateFilter(radar)
-    gatefilter.exclude_transition()
-    gatefilter.exclude_equal('RHOHV', 0.9)
-
-    elev=3
-    ZHelev18 = radar.get_field(elev, TH_name, copy=False)
-    [lats_, lons_, _] = radar.get_gate_lat_lon_alt(elev, reset_gate_coords=False, filter_transitions=False)
-
-    fig, ax = plt.subplots(figsize=(8,8)) 
-    pcm = ax.pcolormesh(lons_, lats_, ZHelev18, cmap=P4A.colormaps('ref'), vmin=5,  vmax=65)
-    cbar = plt.colorbar(pcm, ax=ax, shrink=1, label='Zh RMA1 elev 3')
-    cbar.cmap.set_under('white')
-    cbar.cmap.set_under('white')
-    ax.grid()       
-    ax.plot(prov[:,0],prov[:,1],color='k'); 
-    ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
-    ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
-       
-    ax.set_xlim([-65.2,-63.2]); 
-    ax.set_ylim([-32.5,-31])
-                     
-    # agrego contorno de 500 y 1000m
-    ax.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2)
-   
-    slatitudes  = df['Latitude'].tolist()
-    slongitudes = df['Longitude'].tolist()
-    radiosondelabel = df['Sondeo'].tolist()
-   
-    for i in range(len(slatitudes)):
-        ax.scatter(slongitudes[i], slatitudes[i], marker='s', s=100, color='k', label=radiosondelabel[i])   
-        ax.text(slongitudes[i], slatitudes[i], radiosondelabel[i], ha='left', va='bottom', fontsize=10, color='blue')
-    
-    # Shrink axis by 10%
-    #box = ax.get_position()
-    #ax.set_position([box.x0, box.y0+box.height*0.1, box.width, box.height*0.9])
-    #ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
-   
-    ax.set_title('IOP surface and radiosondes obs. (Zh 20:30)')
-    plt.show()
-    fig.savefig(save_dir_compare+'IOP_observation_domain.png', dpi=300,transparent=False,bbox_inches='tight')
-    plt.close()
-   
-    return df
-
-#------------------------------------------------------------------------------
-def plot_many_wrf_sondes(df):
-    
-    slatitudes      = dfsondeos['Latitude'].tolist()
-    slongitudes     = dfsondeos['Longitude'].tolist()
-    radiosondelabel = dfsondeos['Sondeo'].tolist()
-      
-    EXP = ['WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP']
-
-    # Loop over launched radiosonde point observations
-    for i in range(len(slatitudes)):
-    
-        # Get 20 random lat/lon points within 30km of the radiosonde launch 
-        random_points  = generate_random_latlon(slatitudes[i], slongitudes[i])
-
-        # Loop over experiments of interest and between 18:00 and 22:00
-        for EXPi in EXP:
-            for h in range(18, 22):
-                for m in range(0, 60, 30): 
-                       print(EXPi+'(Time: '+f"{h}:{m:02d}"+') for Sondeo: '+ radiosondelabel[i])
-                       plot_sondeos(EXPi, random_points, 'd02', f"{h}:{m:02d}", 'cnrm', radiosondelabel[i].replace(" ", "") )
-                plot_sondeos(EXPi, random_points, 'd01', f"{h}:00", 'cnrm', radiosondelabel[i])
-
-        # Run also for initcond_fromwrf_domain3_WSM6_d01P3_54_test2
-        for h in range(18, 22):
-            for m in range(0, 60, 30): 
-                   plot_sondeos('initcond_fromwrf_domain3_WSM6_d01P3_54_test2', random_points, 'd01', f"{h}:{m:02d}", 'cnrm', radiosondelabel[i])        
-
-    return
-
-#------------------------------------------------------------------------------
-def plot_sondeos_compare(random_points, title, server, sndLoc):
-
-    folders   = config_folders.config_folders(server)
-    save_dir_compare = folders['save_dir_compare']
-
-    if 'yakaira' in server:
-        prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')    
-        fn = '/home/vito.galligani/Work/Tools/etopo1_bedrock.nc'
-    elif 'cnrm' in server:
-        prov = np.genfromtxt("provincias.txt", delimiter='')    
-        fn = 'etopo1_bedrock.nc'  
+for h in range(20, 22):
+    for m in range(0, 60, 30): 
+          plot_all_WRF_variables(f"{h}:{m:02d}", 'd02', 'cnrm')
 
 
-    # Para agregar subplot en la esquina con datos del radar
-    #------------------------------------------
-    radarLAT_RMA1 = -31.441389
-    radarLON_RMA1 = -64.191944
-    [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
-    [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
-    # De referencia plot contour of observed simulation 
-    folders       = config_folders.config_folders(server)
-    TH_name       = 'TH'
-    file          = 'cfrad.20181110_202339.0000_to_20181110_203020.0000_RMA1_0301_01.nc'
-    radar         = pyart.io.read(os.path.join(folders['rma1_dir'], file)) 
-    # Configure a gatefilter to filter out copolar correlation coefficient values > 0.9
-    gatefilter = pyart.filters.GateFilter(radar)
-    gatefilter.exclude_transition()
-    gatefilter.exclude_equal('RHOHV', 0.9)    
-    # topo    
-    ds = nc.Dataset(fn)
-    topo_lat = ds.variables['lat'][:]
-    topo_lon = ds.variables['lon'][:]
-    topo_dat = ds.variables['Band1'][:]/1e3
-    lons_topo, lats_topo = np.meshgrid(topo_lon,topo_lat)
-    #------------------------------------------
-    
-    EXP    = ['WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'initcond_fromwrf_domain3_WSM6_d01P3_54_test2']
-    domain = ['d02','d02','d01']
-    colorsr = ['red','darkred','magenta']
-    colorsg = ['blue', 'darkblue', 'cyan']
-    
-    # Loop a bit randomly around the snd geo location
-    latloniteraton = 0 
-
-    for i in range(len(random_points)):
-        
-        lat = round(random_points[i][0],2)
-        lon = round(random_points[i][1],2)
-    
-        figuretitle = 'Sounding at (' + str(lat) + ', ' + str(lon) + ') '+title+' UTC'
-
-        # New figure to compare all models under evaluation 
-        fig = plt.figure(figsize=(12, 9), dpi=300.)
-        skew = SkewT(fig)
-        skew.ax.set_xlim(-60.,40.)
-        skew.ax.set_ylim(1000.,100.)
-        skew.ax.tick_params(axis='both',labelsize=14)   
-
-        skew.plot(np.nan,np.nan,'red',linewidth=2, label='WSM6')    
-        skew.plot(np.nan,np.nan,'darkred',linewidth=2, label='P3')
-        skew.plot(np.nan,np.nan,'magenta',linewidth=2, label='P3(WSM6init)')
-        
-        skew.plot(np.nan,np.nan,'green',linewidth=2, label='WSM6')    
-        skew.plot(np.nan,np.nan,'darkgreen',linewidth=2, label='P3')
-        skew.plot(np.nan,np.nan,'darkgreen',linewidth=2, label='P3(WSM6init)')
-        
-        plt.legend(loc='upper left')
-    
-        iie = 0
-        for EXPi in EXP:
-            
-            WRFfolder = folders[EXPi]        
-            filename  = os.path.join(WRFfolder, 'wrfout_'+domain[iie]+'_2018-11-10_'+title+':00')
-            ncfile    = Dataset(filename,'r') 
-            
-            wrflat      = wrf.getvar( ncfile,"lat") 
-            wrflon      = wrf.getvar( ncfile,"lon")
-
-            if (is_point_within_domain(lat, lon, wrflat, wrflon) ) == 1:     
-                p, t, td, u, v = get_data_sondeo(ncfile, lat, lon)
-            
-                skew.plot(p,t,colorsr[iie],linewidth=2)        # reds
-                skew.plot(p,td,colorsg[iie],linewidth=2)       # greens
-                skew.plot_barbs(p,u,v)
-                skew.plot_dry_adiabats()
-                skew.plot_moist_adiabats()
-                skew.plot_mixing_lines()
-            
-                del p, t, td, u, v 
-            iie=iie+1
-            
-        # Continue making plot    
-        skew.ax.set_xlabel("Temperature (°C)", fontsize=16, weight='bold')
-        skew.ax.set_ylabel("Pressure (hPa)", fontsize=16, weight='bold')
-        skew.ax.set_title(figuretitle, fontsize=16, weight='bold')
-            
-        # Create extra subplot for map? 
-        # Create an inset axes object that is 40% width and height of the
-        # figure and put it in the upper right hand corner.
-        h = inset_axes(skew.ax, '40%', '40%', loc=1, borderpad=3) #,
-
-        ZHelev18 = radar.get_field(3, TH_name, copy=False)
-        ZHelev18[np.where(ZHelev18<4)]=np.nan
-        [lats_, lons_, _] = radar.get_gate_lat_lon_alt(3, reset_gate_coords=False, filter_transitions=False)
-        h.pcolormesh(lons_, lats_, ZHelev18, cmap=P4A.colormaps('ref'), vmin=5,  vmax=65)
-        h.plot(prov[:,0],prov[:,1],color='k'); 
-        h.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
-        h.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)        
-        h.set_xlim([-65.2,-63.2]); 
-        h.set_ylim([-32.5,-31])
-        h.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2)
-        h.scatter(lon, lat, s=100,color='k', marker='x') 
-        
-        figurename = 'ModelComparison_'+title+'_'+sndLoc+'_'+str(latloniteraton)
-        fig.savefig(save_dir_compare+'/Comparison/Sondeos/'+figurename+'.png', dpi=300,transparent=False,bbox_inches='tight')
-        latloniteraton = latloniteraton + 1
-        plt.close(fig)
-            
-    
-    return fig 
-
-#-----------------------------------------------------------------------------
-def get_data_sondeo(ncfile, lat, lon):
-
-    xloc, yloc = wrf.to_np(wrf.ll_to_xy(ncfile, lat, lon))
-
-    p  = wrf.getvar(ncfile, "p", units="hPa")
-    z  = wrf.getvar(ncfile, "z", units="m")
-    t  = wrf.getvar(ncfile, "tc")
-    td = wrf.getvar(ncfile, "td", units="degC")
-    u  = wrf.getvar(ncfile, "uvmet", units="kt")[0,:]
-    v  = wrf.getvar(ncfile, "uvmet", units="kt")[1,:]
-    
-    p = p.sel(south_north=yloc, west_east=xloc)
-    z = z.sel(south_north=yloc, west_east=xloc)
-    t = t.sel(south_north=yloc, west_east=xloc)
-    td = td.sel(south_north=yloc, west_east=xloc)
-    u = u.sel(south_north=yloc, west_east=xloc)
-    v = v.sel(south_north=yloc, west_east=xloc)
-    
-    return p,t,td,u,v
-
-#------------------------------------------------------------------------------
-def plot_compare_wrf_sondes(df, server):
-    
-    slatitudes      = dfsondeos['Latitude'].tolist()
-    slongitudes     = dfsondeos['Longitude'].tolist()
-    radiosondelabel = dfsondeos['Sondeo'].tolist()
-      
-    # Loop over launched radiosonde point observations
-    for i in range(len(slatitudes)):
-    
-        # Get 20 random lat/lon points within 30km of the radiosonde launch 
-        random_points  = generate_random_latlon(slatitudes[i], slongitudes[i])
-        
-        for h in range(18, 22):
-            for m in range(0, 60, 30): 
-                print('(Time: '+f"{h}:{m:02d}"+') for Sondeo: '+ radiosondelabel[i])
-                plot_sondeos_compare(random_points, f"{h}:{m:02d}", server, radiosondelabel[i])
-    return
-
-
-    
-#------------------------------------------------------------------------------
-dfsondeos = plot_domain_SurfObs('cnrm')
-#plot_many_wrf_sondes(dfsondeos)
-plot_compare_wrf_sondes(dfsondeos, 'cnrm')
-
-#lon = -64.25
-#lat = -31.8
-#plot_sondeos('WSM6_domain3_NoahMP', lat, lon, 'd02', "18:00", 'cnrm','test')

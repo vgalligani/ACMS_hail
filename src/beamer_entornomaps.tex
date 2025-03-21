@@ -1,0 +1,143 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{tikz,etoolbox}
+\usepackage{underscore}
+
+%-------------- DOMAIN02
+%------------------------------------------------------------------------------
+% Define time steps and experiments
+\def\timesEXP{18:00, 18:30, 19:00, 19:30, 20:00, 20:30, 21:00, 21:30}
+\def\experiments{"WSM6_domain3_NoahMP", "P3_3MOM_LF_domain3_NoahMP","initcond_fromwrf_domain3_WSM6_d01P3_54_test2"}
+
+\begin{document}
+
+
+\newcommand{\filepath}[1]{/home/galliganiv/Work/HAILCASE_10112018/Plots/Comparison/#1}
+
+% title slide
+\begin{frame}
+    \title{WRF maps (10-11-2018)}
+    \maketitle
+    \textbf{Experiments: WSM6(ERA5), P3(ERA5), P3(WSM6 initialization)}
+\end{frame}
+
+% loop thorugh time steps for each variable: 
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+    	\frametitle{1km Storm relative Helicity Comparison. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{1km_Storm_Relative_Helicity_Comparison_\t.png}}
+    	\end{figure}
+    \end{frame}
+}
+
+% loop thorugh time steps for each variable: 
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+    	\frametitle{1km Storm relative Helicity Comparison. Time = \t}
+        \begin{figure}[h]
+           \centering
+	   \includegraphics[width=0.8\textwidth]{\filepath{3km_Storm_Relative_Helicity_Comparison_\t.png}}
+    	\end{figure}
+    \end{frame}
+}
+
+% loop thorugh time steps for each variable:
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{T2m. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{t2m_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+% loop thorugh time steps for each variable:
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{Td2m. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{td2m_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+% loop thorugh time steps for each variable:
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{Updraft Helicity. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{Updraft_Helicity_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+% loop thorugh time steps for each variable:
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{Winds. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{Winds_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+
+
+
+% loop thorugh time steps for each variable: 
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{0-6km CAPE. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{mlCAPE_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+
+% loop thorugh time steps for each variable: 
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{Equiv. Potential Temp. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{EquivPotentialTemp_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+
+% loop thorugh time steps for each variable: 
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{Convergence. Time = \t}
+        \begin{figure}[h]
+           \centering
+           \includegraphics[width=0.8\textwidth]{\filepath{Convergence_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+
+% loop thorugh time steps for each variable: 
+\foreach \t[count=\tcount from 0] in \timesEXP {%
+    \begin{frame}
+        \frametitle{1km Radar Reflectivity . Time = \t}
+        \begin{figure}[h]
+           \centering
+	   \includegraphics[width=0.8\textwidth]{\filepath{1kRadarReflectivity_Comparison_\t.png}}
+        \end{figure}
+    \end{frame}
+}
+
+
+
+\end{document}
+
