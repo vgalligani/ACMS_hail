@@ -124,11 +124,11 @@ def get_q_ints6(ncfile):
     qc = mixr2massconc( np.squeeze(ncfile.variables["QCLOUD"][0,:,:,:] ), pressure, temp )       
     qg = mixr2massconc( np.squeeze(ncfile.variables["QGRAUP"][0,:,:,:] ), pressure, temp ) 
 
-    qr_int = integrate.trapz(np.ma.array(qr, mask=np.isnan(qr)) , z_level, axis=0)
-    qs_int = integrate.trapz(np.ma.array(qr, mask=np.isnan(qs)) , z_level, axis=0)
-    qg_int = integrate.trapz(np.ma.array(qr, mask=np.isnan(qg)) , z_level, axis=0)
-    qi_int = integrate.trapz(np.ma.array(qi, mask=np.isnan(qi)) , z_level, axis=0)
-    qc_int = integrate.trapz(np.ma.array(qc, mask=np.isnan(qc)) , z_level, axis=0)
+    qr_int = integrate.trapezoid(np.ma.array(qr, mask=np.isnan(qr)) , z_level, axis=0)
+    qs_int = integrate.trapezoid(np.ma.array(qr, mask=np.isnan(qs)) , z_level, axis=0)
+    qg_int = integrate.trapezoid(np.ma.array(qr, mask=np.isnan(qg)) , z_level, axis=0)
+    qi_int = integrate.trapezoid(np.ma.array(qi, mask=np.isnan(qi)) , z_level, axis=0)
+    qc_int = integrate.trapezoid(np.ma.array(qc, mask=np.isnan(qc)) , z_level, axis=0)
     
     qr_int[qr_int<0.0001] = np.nan
     qs_int[qs_int<0.0001] = np.nan

@@ -157,7 +157,9 @@ def config_folders(server):
         folders['test'] = home_dir+'test/P3_3MOM_LF_domain3_NoahMP/'
         folders['WSM6_domain3_NoahMP_12h']                  = home_dir+'WSM6_domain3_NoahMP_start1200/'        
         folders['WSM6_domain3_NoahMP_YSU']                  = home_dir+'WSM6_domain3_NoahMP_YSU/'
-
+        folders['WSM6_domain3_NoahMP_3h']                   = home_dir+'WSM6_domain3_NoahMP_3h/'        
+        
+        
         
         # ------ main savedir 
         # Within this folder, define the name of a sub-folder according to date
