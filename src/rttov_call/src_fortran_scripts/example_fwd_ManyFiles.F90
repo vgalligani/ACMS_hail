@@ -59,6 +59,11 @@ PROGRAM example_fwd
          rttov_transmission,  &
          rttov_radiance
 
+  ! The rttov_emis_atlas_data type must be imported separately
+  USE rttov_emis_atlas_mod, ONLY : &
+        rttov_emis_atlas_data, &
+        atlas_type_mw
+
   ! jpim, jprv and jplm are the RTTOV integer, real and logical KINDs
   USE rttov_kinds, ONLY : jpim, jprv, jplm
 
@@ -75,6 +80,14 @@ PROGRAM example_fwd
 #include "rttov_print_opts.interface"
 #include "rttov_print_profile.interface"
 #include "rttov_skipcommentline.interface"
+
+
+! Use emissivity atlas ----- vito
+#include "rttov_setup_emis_atlas.interface"
+#include "rttov_get_emis.interface"
+#include "rttov_deallocate_emis_atlas.interface"
+
+
 
   !--------------------------
   !
@@ -115,13 +128,16 @@ PROGRAM example_fwd
   INTEGER            :: ios
 
   !------------------------------------------------! Vito
-  REAL(KIND=jprv)              :: input_emissivity ! Vito
-  REAL(KIND=jprv), ALLOCATABLE :: emissivity_val(:)! Vito
-  REAL(Kind=jprv)              :: zenith           ! Vito
-  REAL(Kind=jprv)              :: iprofNr           ! Vito
+  !!REAL(KIND=jprv)              :: input_emissivity ! Vito (set-up atlas)
+  !!REAL(KIND=jprv), ALLOCATABLE :: emissivity_val(:)! Vito (set-up atlas) 
+  !REAL(Kind=jprv)              :: zenith           ! Vito
   !-------------------------------------------------------------------------! V
-  Character (len=100)  :: fmt,fout2,fout1,path ! Variables for storing the output ! V
+  Character (len=100)  :: fmt,fout1,path ! Variables for storing the output ! V
   REAL(Kind=jprv)      :: dummy    ! For data type convertion               ! V
+  INTEGER(KIND=jpim) :: imonth                                              ! Vito
+  INTEGER(KIND=jpim) :: atlas_type
+  TYPE(rttov_emis_atlas_data)      :: emis_atlas               ! Data structure for emissivity atlas
+  CHARACTER(LEN=256) :: instrument_name
   !-------------------------------------------------------------------------! V
 
   !------------------------------------------------! Vito
@@ -152,9 +168,9 @@ PROGRAM example_fwd
   !WRITE(0,*) 'enter path of file containing profile data'
   READ(*,*) prof_filename
   !WRITE(0,*) 'enter number of profiles'
-  READ(*,*) nprof
+  !READ(*,*) nprof
   !WRITE(0,*) 'enter number of profile pressure half-levels'
-  READ(*,*) nlevels
+  !READ(*,*) nlevels
   !WRITE(0,*) 'turn on solar simulations? (0=no, 1=yes)'
   READ(*,*) solar
   !WRITE(0,*) 'enter number of channels to simulate per profile'
@@ -166,12 +182,10 @@ PROGRAM example_fwd
   READ(*,*) nthreads
 
   !--------------------------------------------------------------! Vito
-  READ(*,*) input_emissivity                                     ! Vito
-  ALLOCATE (emissivity_val(nchannels))                           ! Vito
-  emissivity_val = input_emissivity                              ! Vito
-
-  READ(*,*) zenith                                               ! Vito
-  READ(*,*) iprofNr
+  !READ(*,*) input_emissivity                                     ! Vito
+  !ALLOCATE (emissivity_val(nchannels))                          ! Vito (usar atlas)
+  !!emissivity_val = input_emissivity                            ! Vito (usar atlas)
+  READ(*,*) instrument_name                                               ! Vito
   !--------------------------------------------------------------! Vito
 
   ! --------------------------------------------------------------------------
@@ -235,10 +249,11 @@ PROGRAM example_fwd
     CALL rttov_exit(errorstatus_fatal)                                        !
   ENDIF                                                                       !
   CALL rttov_skipcommentline(iup, errorstatus)                                !
-  !READ(iup,*) nprof                                                           !
-  !CALL rttov_skipcommentline(iup, errorstatus)                                !
-  !READ(iup,*) nlevels                                                         !
-  !CALL rttov_skipcommentline(iup, errorstatus)                                !
+  READ(iup,*) nprof                                                           !
+  !nprof = 2. 
+  CALL rttov_skipcommentline(iup, errorstatus)                                !
+  READ(iup,*) nlevels                                                         !
+  CALL rttov_skipcommentline(iup, errorstatus)                                !
   !WRITE (*,*) 'READ NLEVELS FROM FILE: ', nlevels                             !
   !---!------------------------------------------------------------------------! Vito
 
@@ -268,6 +283,31 @@ PROGRAM example_fwd
     WRITE(*,*) 'allocation error for rttov_direct structures'
     CALL rttov_exit(errorstatus)
   ENDIF
+
+  !-------------------------------------- VITO
+  ! Initialise the RTTOV emissivity atlas
+  ! (this loads the default IR/MW atlases: use the atlas_id argument to select alternative atlases)
+  atlas_type = atlas_type_mw ! MW atlas
+  imonth     = 11.  
+  CALL rttov_setup_emis_atlas(          &
+              errorstatus,              &
+              opts,                     &
+              imonth,                   &
+              atlas_type,               & ! Selects MW (1) or IR (2)
+              emis_atlas,               &
+              path = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/rttov14.0_beta/emis_data', & ! The default path to atlas data
+              coefs = coefs) ! This is mandatory for the CNRM MW atlas, ignored by TELSEM2;
+                             ! if supplied for IR atlases they are initialised for this sensor
+                             ! and this makes the atlas much faster to access
+  IF (errorstatus /= errorstatus_success) THEN
+    WRITE(*,*) 'error initialising emissivity atlas'
+    CALL rttov_exit(errorstatus)
+  ENDIF
+
+
+
+
+
 
 
   ! --------------------------------------------------------------------------
@@ -310,21 +350,29 @@ PROGRAM example_fwd
   !  CALL rttov_exit(errorstatus_fatal)
   !ENDIF
   !CALL rttov_skipcommentline(iup, errorstatus)
-
-  ! Read gas units for profiles
-  READ(iup,*) profiles(1) % gas_units
-  profiles(:) % gas_units = profiles(1) % gas_units
-  CALL rttov_skipcommentline(iup, errorstatus)
+  print*, 'print nprof:', nprof
+  print*, 'print nlevels:', nlevels
 
   ! Loop over all profiles and read data for each one
+  print*, 'Entering loop to read all profiles'
   DO iprof = 1, nprof
+    !print*, 'iprof loop: ', iprof   
+    
+    READ(iup,*) profiles(iprof) % gas_units 
+    CALL rttov_skipcommentline(iup, errorstatus)
+    !print*, 'gas_units: ', profiles(iprof) % gas_units
 
     ! Read pressure (hPa), temp (K), WV, O3 (gas units ppmv or kg/kg - as read above)
     READ(iup,*) profiles(iprof) % p_half(:)
+    ! print*, 'profiles(iprof) % p_half(:) >>', profiles(iprof) % p_half(:)
     CALL rttov_skipcommentline(iup, errorstatus)
+
     READ(iup,*) profiles(iprof) % t(:)
+    !print*, 'profiles(iprof) % t(:) >>', profiles(iprof) % t(:)
     CALL rttov_skipcommentline(iup, errorstatus)
+
     READ(iup,*) profiles(iprof) % q(:)
+    !print*, 'profiles(iprof) % q(:) >>', profiles(iprof) % q(:)
     CALL rttov_skipcommentline(iup, errorstatus)
     ! Ozone profile is commented out in input profile data
 !     READ(iup,*) profiles(iprof) % o3(:)
@@ -337,29 +385,46 @@ PROGRAM example_fwd
                 profiles(iprof) % near_surface(isurf) % wind_v10m  !, &  !Vito
                 !profiles(iprof) % near_surface(isurf) % wind_fetch      !Vito
     CALL rttov_skipcommentline(iup, errorstatus)
+    !print*, 'profiles(iprof) % near t2m >>', profiles(iprof) % near_surface(isurf) % t2m
+    !print*, 'profiles(iprof) % near q2m  >>', profiles(iprof) % near_surface(isurf) % q2m
+
 
     ! Skin variables
     READ(iup,*) profiles(iprof) % skin(isurf) % t,        &
                 !profiles(iprof) % skin(isurf) % salinity, & ! Salinity only applies to FASTEM over sea !Vito
                 profiles(iprof) % skin(isurf) % fastem      ! FASTEM only applies to MW instruments
     CALL rttov_skipcommentline(iup, errorstatus)
+    !print*, 'profiles(iprof) % skin t   >>', profiles(iprof) % skin(isurf) % t
 
     ! Surface type and water type
-    !READ(iup,*) profiles(iprof) % skin(isurf) % surftype, &    ! Vito
-    !            profiles(iprof) % skin(isurf) % watertype      ! Vito
-    !CALL rttov_skipcommentline(iup, errorstatus)               ! Vito
-    profiles(iprof) % skin(isurf) % surftype = 1
-    profiles(iprof) % skin(isurf) % watertype= 1
+    READ(iup,*) profiles(iprof) % skin(isurf) % surftype        ! Vito
+    !print*, 'profiles(iprof) % surftype >>', profiles(iprof) % skin(isurf) % surftype
 
+    CALL rttov_skipcommentline(iup, errorstatus)                ! Vito
+    ! profiles(iprof) % skin(isurf) % watertype                 ! Vito
+    !CALL rttov_skipcommentline(iup, errorstatus)               ! Vito
+    !profiles(iprof) % skin(isurf) % surftype = 1
+    profiles(iprof) % skin(isurf) % watertype = 1
+    
     ! Elevation, latitude and longitude
     READ(iup,*) profiles(iprof) % elevation!, &  :   ! Vito
     !            profiles(iprof) % latitude,  &     ! Vito
     !           profiles(iprof) % longitude         ! Vito
     CALL rttov_skipcommentline(iup, errorstatus)
 
-    profiles(iprof) % zenangle = zenith
+    !profiles(iprof) % zenangle = zenith
+    !print*, 'zenith  >>', profiles(iprof) % zenangle
+
+    READ(iup,*) profiles(iprof) % latitude     ! Vito
+    CALL rttov_skipcommentline(iup, errorstatus) ! Vito
+    !print*, 'profiles(iprof) % lat >>', profiles(iprof) % latitude
+
+    READ(iup,*) profiles(iprof) % longitude     ! Vito
+    CALL rttov_skipcommentline(iup, errorstatus) ! Vito
+    !print*, 'profiles(iprof) % lon >>', profiles(iprof) % longitude
+
     ! Satellite and solar angles
-    !READ(iup,*) profiles(iprof) % zenangle,    &
+    READ(iup,*) profiles(iprof) % zenangle
     !            profiles(iprof) % azangle!,    &   ! Vito
     !           profiles(iprof) % sunzenangle, &   ! Vito
     !            profiles(iprof) % sunazangle      ! Vito
@@ -375,7 +440,7 @@ PROGRAM example_fwd
 
   !========== Read profiles == end =============
   !=============================================
-
+  print*, 'Finished reading all profiles'
 
   ! --------------------------------------------------------------------------
   ! 6. Specify surface emissivity and reflectance
@@ -384,11 +449,28 @@ PROGRAM example_fwd
   ! The emis_refl structure was initialised in the allocation call above: all
   ! numerical members are set to zero, and the calc_* members are set to true.
 
-  ! In this example we leave RTTOV to provide all surface emissivities and
-  ! reflectances.
+  ! Use emissivity atlas
+  CALL rttov_get_emis(            &
+            errorstatus,          &
+            opts,                 &
+            chanprof,             &
+            profiles,             &
+            isurf,                &
+            coefs,                &
+            emis_atlas,           &
+            emis_refl(isurf) % emis_in(:))
+  IF (errorstatus /= errorstatus_success) THEN
+    WRITE(*,*) 'error reading emissivity atlas'
+    CALL rttov_exit(errorstatus)
+  ENDIF
 
-  emis_refl(isurf) % emis_in(:)   = input_emissivity     ! Vito
-  emis_refl(isurf) % calc_emis(:) = .FALSE.              ! Vito
+  ! Calculate emissivity within RTTOV where the atlas emissivity value is
+  ! zero or less
+  emis_refl(isurf) % calc_emis(:) = (emis_refl(isurf) % emis_in(:) <= 0._jprv)
+
+
+
+
 
   ! --------------------------------------------------------------------------
   ! 7. Call RTTOV forward model
@@ -425,15 +507,14 @@ PROGRAM example_fwd
   ! Define the path and a string to assign to the name of the output                 ! V
   fmt =  '(I5)'                                                                      ! V
   ! Convert the angle to a string and put it to the filenames of the output          ! V
-  WRITE(fout1,fmt) INT(zenith)                                              ! V
-  WRITE(fout2,fmt) INT(iprofNr)                                              ! V
+  !WRITE(fout1,fmt) INT(zenith)                                                       ! V
   ! Trim `fout1` to remove leading and trailing whitespace
-  fout1 = adjustl(trim(fout1))
-  fout2 = adjustl(trim(fout2))
+  !fout1 = adjustl(trim(fout1))
+
   !=====================================================
   !============== Output results == start ==============
   !OPEN(ioout, file='output_tb', status='unknown', form='formatted', iostat=ios)      ! Vito
-  OPEN(ioout, file='output_tb_'//trim(fout1)//trim(fout2), status='unknown', form='formatted', iostat=ios)      ! Vito
+  OPEN(ioout, file='output_tb_'//trim(instrument_name), status='unknown', form='formatted', iostat=ios)      ! Vito
   IF (ios /= 0) THEN                                                                 ! Vito
     WRITE(*,*) 'error opening the output file ios= ', ios                            ! Vito
     CALL rttov_exit(errorstatus_fatal)                                               ! Vito
@@ -494,7 +575,7 @@ PROGRAM example_fwd
   !--------------------------------------------------------------------------------------------! Vito
   ! The following should be the same as Surface2SpaceTransmittance_CS.txt                      ! V
   !OPEN(21,   file='surface2space_transm', status='unknown', form='formatted', iostat=ios)      ! V
-  OPEN(21,   file='surface2space_transm_'//trim(fout1)//trim(fout2), status='unknown', form='formatted', iostat=ios)      ! V
+  OPEN(21,   file='surface2space_transm_'//trim(instrument_name), status='unknown', form='formatted', iostat=ios)      ! V
   DO iprof = 1, nprof                                                                          ! V
     joff = (iprof-1_jpim) * nchannels                                                          ! V
     nprint = 1 + INT((nchannels-1)/24)                                                         ! V
@@ -502,7 +583,7 @@ PROGRAM example_fwd
   ENDDO                                                                                        ! V
   CLOSE(ioout); CLOSE(21)                                                                      ! Vito 
   
-  OPEN(ioout, file='output_transm_'//trim(fout1)//trim(fout2), status='unknown', form='formatted', iostat=ios)            ! Vito
+  OPEN(ioout, file='output_transm_'//trim(instrument_name), status='unknown', form='formatted', iostat=ios)            ! Vito
   !WRITE(*,*) 'CHECK NLEVELS: ', nlevels
   DO iprof = 1, nprof
     joff = (iprof-1_jpim) * nchannels

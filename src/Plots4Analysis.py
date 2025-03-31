@@ -1669,11 +1669,7 @@ def plot_psuedo_HID_CSPR2(test_transect, time, rfiles, ZDRoffset, xlim_range1, x
     
     plt.show() 
        
-        
-    
-    
     return
-
 
 
 
