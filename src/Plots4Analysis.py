@@ -1673,3 +1673,90 @@ def plot_psuedo_HID_CSPR2(test_transect, time, rfiles, ZDRoffset, xlim_range1, x
     
     
     return
+
+
+
+
+
+#------------------------------------------------------------------------------
+def plot_precip_WRF(EXP, title, titleprevious, domain, servidor):
+
+    
+    folders   = config_folders.config_folders(servidor)
+    WRFfolder = folders[EXP]
+    save_dir_compare = folders['save_dir_compare']
+
+    if 'yakaira' in servidor:
+        prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
+        fn = '/home/vito.galligani/Work/Tools/etopo1_bedrock.nc'
+
+    elif 'cnrm' in servidor:
+        prov = np.genfromtxt("provincias.txt", delimiter='')
+        fn = 'etopo1_bedrock.nc'
+    
+    
+    ds = nc.Dataset(fn)
+    topo_lat = ds.variables['lat'][:]
+    topo_lon = ds.variables['lon'][:]
+    topo_dat = ds.variables['Band1'][:]/1e3
+    
+    lons_topo, lats_topo = np.meshgrid(topo_lon,topo_lat)
+    
+    radarLAT_RMA1 = -31.441389
+    radarLON_RMA1 = -64.191944
+    [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
+    [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
+    
+
+    prefix   = 'wrfout_'+domain+'_2018-11-10_'+title
+    filename = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-11-10_'+title+':00')
+
+    
+    ncfile       = Dataset(filename,'r')        
+    z            = wrf.getvar( ncfile,"z") 
+    zh           = wrf.getvar(ncfile, "REFL_10CM")
+    REFL_10CM    = wrf.interplevel(zh, z, 1000)
+    lat          = wrf.getvar( ncfile,"lat") 
+    lon          = wrf.getvar( ncfile,"lon")
+    
+    RAINNC       = wrf.getvar( ncfile,"RAINNC")
+    
+    # to get the previous hour and get the accumulated period of time (in this case 30mins)
+    filename_preivous = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-11-10_'+titleprevious+':00')
+    ncfile_preivous   = Dataset(filename_preivous,'r')        
+    RAINNC_previous   = wrf.getvar( ncfile_preivous,"RAINNC")
+    
+    # 30MINS ACCUMULATED:
+    precip = RAINNC - RAINNC_previous
+   
+
+    fig, ax = plt.subplots(figsize=(8,8)) 
+    pcm = ax.pcolormesh(lon, lat,  precip, cmap=get_cmap("rainbow"), vmin=0,  vmax=50)   #MPL_gist_ncar
+    cbar = plt.colorbar(pcm, ax=ax, shrink=1)
+    ax.plot(prov[:,0],prov[:,1],color='k'); 
+        
+    if 'maite' in title: 
+        ax.set_xlim([-66,-62]); 
+        ax.set_ylim([-35,-31])
+                
+    else:
+        ax.set_xlim([-65.5,-62]); 
+        ax.set_ylim([-35,-31])
+    ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
+    ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
+        
+    # agrego contorno de 500 y 1000m
+    ax.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['k','k'], linewidths=2)
+    ax.contour(lon, lat, REFL_10CM, levels=[45], colors=['r'], linewidths=2)
+        
+
+    cbar.cmap.set_under('white')
+    ax.grid()
+    ax.set_title('Precip accumulated in 30 mins ('+title+')')
+    
+    ax.text(x=-65, y=-34.9, s='120 and 220 km radar rings')
+    #plt.show()
+    fig.savefig(save_dir_compare+'/'+EXP+'/WRF_PRECIPACCUM_30mins_'+domain+'_general_evolution_'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
+    plt.close()
+    
+    return#------------------------------------------------------------------------------

@@ -26,7 +26,21 @@ def config_folders(server):
         folders['WDM6_domain3_NoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WDM6_domain3_NoahMP/'
         folders['P3_3MOM_LF_domain7_NoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain7_NoahMP/'
 
-        
+        folders['initcond_fromwrf_domain3_WSM6_d01mp6_1700']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/initcond_fromwrf_domain3_WSM6_d01mp6_1700/'
+        folders['initcond_fromwrf_domain3_WSM6_d01mp6_1500']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/initcond_fromwrf_domain3_WSM6_d01mp6_1500/'
+        folders['initcond_fromwrf_domain3_WSM6_d01P3_54']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/initcond_fromwrf_domain3_WSM6_d01P3_54/'
+        folders['initcond_fromwrf_domain3_WSM6_d01P3_54_0']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/initcond_fromwrf_domain3_WSM6_d01P3_54_0/'
+
+        folders['P3_54_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_54_domain3_NoahMP_YSU/'
+        folders['WSM6_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP_YSU/'
+
+
+        folders['0411_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/WSM6/'
+        folders['0411_P3check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/P3_mp54/'
+
+        folders['1312_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_13122018_datos/WSM6noNoah/'
+        folders['2501_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_01252019_datos/noNoah/'
+
         # ------ main savedir 
         # Within this folder, define the name of a sub-folder according to date
         folders['savedir'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots/'
@@ -99,7 +113,11 @@ def config_folders(server):
         EXPs = ['WSM6_domain2', 'WSM6_domain3', 'WSM6_domain3_NoahMP', 'WSM6_domain4_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 
                 'P3_3MOM_LF_domain3_NoahMP_10min', 'WSM6_domain3_NoahMP_10min', 'P3_3MOM_LF_domain3_NoahMP_highres', 
                 'P3_3MOM_LF_domain3_NoahMP_lowres', 'P3_3MOM_LF_domain5_NoahMP', 'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 
-                'P3_3MOM_LF_domain7_NoahMP']
+                'P3_3MOM_LF_domain7_NoahMP','initcond_fromwrf_domain3_WSM6_d01mp6_1700',
+                'initcond_fromwrf_domain3_WSM6_d01mp6_1500','initcond_fromwrf_domain3_WSM6_d01P3_54',
+                'initcond_fromwrf_domain3_WSM6_d01P3_54_0', 'P3_54_domain3_NoahMP_YSU', 'WSM6_domain3_NoahMP_YSU',
+                '0411_WSM6check', '0411_P3check','1312_WSM6check','1312_P3check', '2501_WSM6check']
+        
         for EXP in EXPs:    
             if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP)):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP))                    
