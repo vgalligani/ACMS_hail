@@ -54,7 +54,11 @@ def figure_stad_map(fig, ax, domain, time, params, subtitle, server, WRFfolder):
     vfld      = uvmet10.isel(u_v=1)
     u2.values = u2.values-ufld.values
     v2.values = v2.values-vfld.values
-
+    
+    dbz        = wrf.getvar(ncfile, 'dbz')        
+    REFL_10CM  = wrf.interplevel(dbz, z, 1000)
+    REFL_10CM.values = np.ma.masked_less(REFL_10CM.values,10.)
+        
     sounding_parameters = wrf.smooth2d(wrf.getvar( ncfile, 'cape_2d'),8)
 
 
@@ -151,15 +155,20 @@ def figure_stad_map(fig, ax, domain, time, params, subtitle, server, WRFfolder):
 
     ax.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2)    
     ax.set_title(subtitle+' ('+params['plottitle']+')')
-        
+    ax.contour(lon, lat, REFL_10CM, levels=[40], colors=['darkred'], linewidths=1.2)
+    
     return fig
 
 #------------------------------------------------------------------------------
 def plot_all_WRF_variables(time, domain, server):
     
-    EXPs    = ['WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'initcond_fromwrf_domain3_WSM6_d01P3_54_test2']
-    domains = ['d02','d02','d01']
-    EXPtitle = ['WSM6', 'P3' ,'P3(WSM6init)']
+    #EXPs    = ['WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'initcond_fromwrf_domain3_WSM6_d01P3_54_test2']
+    #domains = ['d02','d02','d01']
+    #EXPtitle = ['WSM6', 'P3' ,'P3(WSM6init)']
+    
+    EXPs    = ['WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'WSM6_domain3']
+    domains = ['d02','d02','d02']
+    EXPtitle = ['WSM6', 'P3' ,'WSM6(noNoah)']
             
     #------------------
     colors1 = plt.cm.BrBG(np.linspace(0., 0.4, 120))
@@ -195,69 +204,69 @@ def plot_all_WRF_variables(time, domain, server):
     # #-------------------------------------------------------------------------
     # # Convergence
     # #-------------------------------------------------------------------------     
-    # colors1 = plt.cm.YlOrRd_r(np.linspace(0, 0.8, 120))    
-    # colors2 = plt.cm.PiYG(np.linspace(0.8, 0.7, 60))
-    # colors = np.vstack((colors1,colors2))#, colors2, colors1))
-    # cmap_conv= mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
-    # cmap_conv.set_over('white')
-    # cmap_conv.set_under('red')
-    # params = { 'VAR': 'convergence', 
-    #             'cmap': cmap_conv,
-    #             'levels': np.arange(-600,20,100.), 
-    #             'vmin': -600,
-    #             'vmax': 0,
-    #             'plottitle': '850 hPa moisture convergence '+time, 
-    #             'filename': save_dir_compare+'/Comparison/Convergence_'+'Comparison_'+time+'.png' }    
+    colors1 = plt.cm.YlOrRd_r(np.linspace(0, 0.8, 120))    
+    colors2 = plt.cm.PiYG(np.linspace(0.8, 0.7, 60))
+    colors = np.vstack((colors1,colors2))#, colors2, colors1))
+    cmap_conv= mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+    cmap_conv.set_over('white')
+    cmap_conv.set_under('red')
+    params = { 'VAR': 'convergence', 
+                'cmap': cmap_conv,
+                'levels': np.arange(-600,20,100.), 
+                'vmin': -600,
+                'vmax': 0,
+                'plottitle': '850 hPa moisture convergence '+time, 
+                'filename': save_dir_compare+'/Comparison/Convergence_'+'Comparison_'+time+'.png' }    
     
-    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
-    # counter=0
-    # for EXPi in EXPs:
-    #     WRFfolder = folders[EXPi]
-    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
-    #     counter=counter+1
-    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
-    # plt.close(fig)    
+    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    counter=0
+    for EXPi in EXPs:
+        WRFfolder = folders[EXPi]
+        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+        counter=counter+1
+    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    plt.close(fig)    
 
 
     # #-------------------------------------------------------------------------
     # # Plot Td
     # #-------------------------------------------------------------------------
-    # params = { 'VAR': 'td_2m', 
-    #            'cmap': cmap_td,
-    #            'levels': np.arange(-12,28,2), 
-    #            'vmin': -12,
-    #            'vmax': 28,
-    #            'plottitle': 'Td 2m '+time, 
-    #            'filename': save_dir_compare+'/Comparison/td2m_'+'Comparison_'+time+'.png' }
+    params = { 'VAR': 'td_2m', 
+               'cmap': cmap_td,
+               'levels': np.arange(-12,28,2), 
+               'vmin': -12,
+               'vmax': 28,
+               'plottitle': 'Td 2m '+time, 
+               'filename': save_dir_compare+'/Comparison/td2m_Comparison_WSM6noNoah/td2m_'+'Comparison_'+time+'.png' }
 
-    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
-    # counter=0
-    # for EXPi in EXPs:
-    #     WRFfolder = folders[EXPi]
-    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
-    #     counter=counter+1
-    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')
-    # plt.close(fig)
+    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    counter=0
+    for EXPi in EXPs:
+        WRFfolder = folders[EXPi]
+        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+        counter=counter+1
+    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')
+    plt.close(fig)
     
     # #-------------------------------------------------------------------------
     # # Plot T
     # #-------------------------------------------------------------------------    
-    # params = { 'VAR': 't2', 
-    #             'cmap': cmap_temp,
-    #             'levels': np.arange(0,42,2), 
-    #             'vmin': 0,
-    #             'vmax': 40,
-    #             'plottitle': 'T 2m '+time, 
-    #             'filename': save_dir_compare+'/Comparison/t2m_'+'Comparison_'+time+'.png' }    
+    params = { 'VAR': 't2', 
+                'cmap': cmap_temp,
+                'levels': np.arange(0,42,2), 
+                'vmin': 0,
+                'vmax': 40,
+                'plottitle': 'T 2m '+time, 
+                'filename': save_dir_compare+'/Comparison/t2m_Comparison_WSM6noNoah/t2m_'+'Comparison_'+time+'.png' }    
     
-    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
-    # counter=0
-    # for EXPi in EXPs:
-    #     WRFfolder = folders[EXPi]
-    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
-    #     counter=counter+1
-    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')
-    # plt.close(fig)
+    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    counter=0
+    for EXPi in EXPs:
+        WRFfolder = folders[EXPi]
+        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+        counter=counter+1
+    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')
+    plt.close(fig)
     
     # #-------------------------------------------------------------------------
     # # 0-6 km MLCAPE
@@ -302,30 +311,50 @@ def plot_all_WRF_variables(time, domain, server):
     #-------------------------------------------------------------------------
     # Storm relative Helicity
     #-------------------------------------------------------------------------  
-    params = { 'VAR': '0-1km_Storm_Relative_Helicity', 
-                'cmap':  get_cmap("cubehelix_r"),
-                'levels': np.arange(50,750,50), 
-                'vmin': 50,
-                'vmax': 750,
-                'plottitle': '0-1 km AGL storm relative helicity (m2s-2) '+time, 
-                'filename': save_dir_compare+'/Comparison/1km_Storm_Relative_Helicity_'+'Comparison_'+time+'.png' }    
+    # params = { 'VAR': '0-1km_Storm_Relative_Helicity', 
+    #             'cmap':  get_cmap("cubehelix_r"),
+    #             'levels': np.arange(50,750,50), 
+    #             'vmin': 50,
+    #             'vmax': 750,
+    #             'plottitle': '0-1 km AGL storm relative helicity (m2s-2) '+time, 
+    #             'filename': save_dir_compare+'/Comparison/1km_Storm_Relative_Helicity_'+'Comparison_'+time+'.png' }    
     
-    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
-    counter=0
-    for EXPi in EXPs:
-        WRFfolder = folders[EXPi]
-        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
-        counter=counter+1
-    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
-    plt.close(fig)
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)
     
-    params = { 'VAR': '0-3km_Storm_Relative_Helicity', 
-                'cmap':  get_cmap("cubehelix_r"),
-                'levels': np.arange(50,950,50), 
-                'vmin': 50,
-                'vmax': 950,
-                'plottitle': '0-3 km AGL storm relative helicity (m2s-2) '+time, 
-                'filename': save_dir_compare+'/Comparison/3km_Storm_Relative_Helicity_'+'Comparison_'+time+'.png' }    
+    # params = { 'VAR': '0-3km_Storm_Relative_Helicity', 
+    #             'cmap':  get_cmap("cubehelix_r"),
+    #             'levels': np.arange(50,950,50), 
+    #             'vmin': 50,
+    #             'vmax': 950,
+    #             'plottitle': '0-3 km AGL storm relative helicity (m2s-2) '+time, 
+    #             'filename': save_dir_compare+'/Comparison/3km_Storm_Relative_Helicity_'+'Comparison_'+time+'.png' }    
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    # counter=0
+    # for EXPi in EXPs:
+    #     WRFfolder = folders[EXPi]
+    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+    #     counter=counter+1
+    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    # plt.close(fig)    
+    
+    # #-------------------------------------------------------------------------
+    # # 1km Zh
+    # #-------------------------------------------------------------------------  
+    params = { 'VAR': '0-1km_Radar_Reflectivity', 
+                'cmap':  get_cmap("gist_ncar"),
+                'levels': np.arange(5,75,5.), 
+                'vmin': 5,
+                'vmax': 75,
+                'plottitle': '1 km AGL radar reflectivity '+time, 
+                'filename': save_dir_compare+'/Comparison/1kZh_Comparison_WSM6noNoah/1kRadarReflectivity_'+'Comparison_'+time+'.png' }    
     
     fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
     counter=0
@@ -337,64 +366,44 @@ def plot_all_WRF_variables(time, domain, server):
     plt.close(fig)    
     
     # #-------------------------------------------------------------------------
-    # # 3km Zh
-    # #-------------------------------------------------------------------------  
-    # params = { 'VAR': '0-1km_Radar_Reflectivity', 
-    #             'cmap':  get_cmap("gist_ncar"),
-    #             'levels': np.arange(5,75,5.), 
-    #             'vmin': 5,
-    #             'vmax': 75,
-    #             'plottitle': '1 km AGL radar reflectivity '+time, 
-    #             'filename': save_dir_compare+'/Comparison/1kRadarReflectivity_'+'Comparison_'+time+'.png' }    
-    
-    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
-    # counter=0
-    # for EXPi in EXPs:
-    #     WRFfolder = folders[EXPi]
-    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
-    #     counter=counter+1
-    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
-    # plt.close(fig)    
-    
-    # #-------------------------------------------------------------------------
     # # 850hPa Equiv. Potential temperature
     # #-------------------------------------------------------------------------      
-    # params = { 'VAR': 'potentialTemp850', 
-    #             'cmap': matplotlib.cm.get_cmap("viridis_r"),
-    #             'levels': np.arange(290,380,10.), 
-    #             'vmin': 290,
-    #             'vmax': 380,
-    #             'plottitle': 'Equiv. Potential Temp. 850 hPa '+time, 
-    #             'filename': save_dir_compare+'/Comparison/EquivPotentialTemp_'+'Comparison_'+time+'.png' }    
+    params = { 'VAR': 'potentialTemp850', 
+                'cmap': matplotlib.cm.get_cmap("viridis_r"),
+                'levels': np.arange(300,370,10.), 
+                'vmin': 300,
+                'vmax': 370,
+                'plottitle': 'Equiv. Potential Temp. 850 hPa '+time, 
+                'filename': save_dir_compare+'/Comparison/EquivPotentialTemp_Comparison_WSM6noNoah/EquivPotentialTemp_'+'Comparison_'+time+'.png' }    
     
-    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
-    # counter=0
-    # for EXPi in EXPs:
-    #     WRFfolder = folders[EXPi]
-    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
-    #     counter=counter+1
-    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
-    # plt.close(fig)    
+    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    counter=0
+    for EXPi in EXPs:
+        WRFfolder = folders[EXPi]
+        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+        counter=counter+1
+    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    plt.close(fig)    
 
     # #-------------------------------------------------------------------------
     # # Winds
     # #-------------------------------------------------------------------------  
-    # params = { 'VAR': '10mwinds', 
-    #             'cmap': matplotlib.cm.get_cmap("YlOrBr"),
-    #             'levels': np.linspace(4.0, 24.0, 6), 
-    #             'vmin': 4,
-    #             'vmax': 24,
-    #             'plottitle': '10m wind '+time, 
-    #             'filename': save_dir_compare+'/Comparison/Winds_'+'Comparison_'+time+'.png' }    
+    params = { 'VAR': '10mwinds', 
+                'cmap': matplotlib.cm.get_cmap("YlOrBr"),
+                'levels': np.linspace(4.0, 24.0, 6), 
+                'vmin': 4,
+                'vmax': 24,
+                'plottitle': '10m wind '+time, 
+                'filename': save_dir_compare+'/Comparison/Winds_'+'Comparison_'+time+'.png' }    
     
-    # fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
-    # counter=0
-    # for EXPi in EXPs:
-    #     WRFfolder = folders[EXPi]
-    #     fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
-    #     counter=counter+1
-    # fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
-    # plt.close(fig)  
+    fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
+    counter=0
+    for EXPi in EXPs:
+        WRFfolder = folders[EXPi]
+        fig = figure_stad_map(fig, ax[counter], domains[counter], time, params, EXPtitle[counter], server, WRFfolder)
+        counter=counter+1
+    fig.savefig(params['filename'], dpi=300,transparent=False,bbox_inches='tight')        
+    plt.close(fig)  
 
 
 
@@ -402,8 +411,11 @@ def plot_all_WRF_variables(time, domain, server):
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-for h in range(20, 22):
+for h in range(15, 23):
     for m in range(0, 60, 30): 
           plot_all_WRF_variables(f"{h}:{m:02d}", 'd02', 'cnrm')
+
+plot_all_WRF_variables('23:00', 'd02', 'cnrm')
+plot_all_WRF_variables('23:30', 'd02', 'cnrm')
 
 

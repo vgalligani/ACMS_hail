@@ -185,6 +185,7 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
             T2P.plot_simple_AMSR2_TEST(lons, lats, q, tb_csrttov, tb1, plotpath)
             T2P.plot_simple_AMSR2_comparison(lons, lats, q, tb_csrttov, tb1, plotpath, 'amsr-2')
 
+        breakpoint()
         # I need to conduct the same type of 'averaging' over the different qints. 
         #-------------------------------------------------------------------------
         # 1) Point q_int on lat/lon grid
