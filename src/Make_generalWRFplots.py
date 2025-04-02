@@ -2178,8 +2178,8 @@ def run_obs_radar():
     start_index = len(prefix)
     for filename in file_list:
         time        = filename[start_index:start_index+4]
-        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=0, folders=folders['save_dir_compare'])
-        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=1, folders=folders['save_dir_compare'])
+        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=0, folders=folders)
+        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=1, folders=folders)
     
  
     return
