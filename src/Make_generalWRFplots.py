@@ -138,9 +138,19 @@ def plot_radar_cspr2_singletime(latrange, lonrange):
         plt.close()
  
     return
+#------------------------------------------------------------------------------
+def discrete_cmapp(N, base_cmap=None):
+
+    base  = plt.cm.get_cmap(base_cmap)
+    color_list = base(np.linspace(0,1,N))
+    cmap_name = base.name+str(N)
+
+
+    return base.from_list(cmap_name, color_list, N)
 
 #------------------------------------------------------------------------------
 def plot_VELradar_cspr2_singletime(latrange, lonrange):
+
 
     prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
 
@@ -160,18 +170,19 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT,radarLON,60) 
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT,radarLON,100) 
     
-    prefix    = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/corcsapr2cfrppiqcM1.b1.20181110.'
+    prefix    = 'corcsapr2cfrppiqcM1.b1.20181110.'
     folder    = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
-    
+       
     #------ 1745
     file_1745 = 'corcsapr2cfrppiqcM1.b1.20181110.174503.nc' 
     radar     = pyart.io.read(folder+file_1745) 
     VEL       = radar.get_field(0, 'mean_doppler_velocity', copy=False)
     [lats_, lons_, _] = radar.get_gate_lat_lon_alt(0, reset_gate_coords=False, filter_transitions=False)
     start_index = len(prefix)
-    time        = prefix[start_index+1:start_index+5]
+    time        = file_1745[start_index:start_index+5]
+    
     fig, ax = plt.subplots(figsize=(8,8)) 
-    pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=pyart.config.get_field_colormap('BuDRd18'), vmin=-12,  vmax=12)
+    pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=discrete_cmapp(12,'seismic'), vmin=-12,  vmax=12)
     cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-12,12.01,2))
     cbar.cmap.set_under('white')
     cbar.cmap.set_over('white')
@@ -179,7 +190,7 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     ax.plot(prov[:,0],prov[:,1],color='k'); 
     ax.set_xlim(lonrange); 
     ax.set_ylim(latrange)
-    ax.set_title('CSAPR2 zoom obs elev '+str(elev)+ 'at ' + time)
+    ax.set_title('CSAPR2 zoom obs elev '+str(elev)+ 'at ' +time)
     ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
     ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
     
@@ -193,10 +204,10 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     VEL       = radar.get_field(0, 'mean_doppler_velocity', copy=False)
     [lats_, lons_, _] = radar.get_gate_lat_lon_alt(0, reset_gate_coords=False, filter_transitions=False)
     start_index = len(prefix)
-    time        = prefix[start_index+1:start_index+5]
+    time        = file_1730[start_index:start_index+5]
     fig, ax = plt.subplots(figsize=(8,8)) 
-    pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=pyart.config.get_field_colormap('BuDRd18'), vmin=-10,  vmax=10)
-    cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-10,10.01,2))
+    pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=discrete_cmapp(12,'seismic'), vmin=-12,  vmax=12)
+    cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-12,12.01,2))
     cbar.cmap.set_under('white')
     cbar.cmap.set_over('white')
     ax.grid()       
@@ -2199,5 +2210,5 @@ def run_cnrm():
 
 #-----------------------------------------------------------------
 #run_all1() 
-run_obs_radar()
-plot_VELradar_cspr2_singletime([-35,-31], [-65.5,-62])
+#run_obs_radar()
+plot_VELradar_cspr2_singletime([-33.4,-31], [-65.5,-63.5])
