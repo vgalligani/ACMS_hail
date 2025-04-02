@@ -1172,7 +1172,7 @@ def plot_general_radar_evolution(radar_folder, title, save_dir_compare, elev):
 
     prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
 
-
+    print(title)
     # RMA1 
     radarLAT_RMA1 = -31.441389
     radarLON_RMA1 = -64.191944
@@ -1236,7 +1236,7 @@ def plot_general_radar_evolution(radar_folder, title, save_dir_compare, elev):
         ax.set_title(title+' '+times)          
         
     plt.show()
-    fig.savefig(save_dir_compare+'/'+title+'/radarOBS_general_evolution_'+title+'.png', dpi=300,transparent=False)
+    fig.savefig(save_dir_compare+'OBS/'+title+'/radarOBS_general_evolution_'+title+'.png', dpi=300,transparent=False)
     
     return
 
@@ -2167,7 +2167,7 @@ def run_obs_radar():
  
     # Evolution of RMA1 to understund evolution of supercell  every 30 min 
     plot_general_radar_evolution(radar_folder=folders['rma1_dir'], title='RMA1', save_dir_compare=folders['save_dir_compare'], elev=3)
-   
+
     #PLOT CSARP2
     plot_radar_cspr2_singletime([-33,-31.5], [-65.5,-63.5])
 
