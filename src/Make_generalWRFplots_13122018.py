@@ -2112,14 +2112,14 @@ def main(exp, folders):
 def run_all(): 
     
     folders=config_folders.config_folders('cnrm_1312')
-    EXPs = ['WSM6']  
+    EXPs = ['P3mp54']  
     date = '2018-12-13' 
     
     #plot_domain('cnrm_1312', 'WSM6')
     #main('WSM6', folders)
 
     for EXP in EXPs:
-        for h in range(17, 21):
+        for h in range(17, 23):
             for m in range(0, 60, 30):
                 plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders, date, 'cnrm_1312')
                 plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, date, 'cnrm_1312')
@@ -2162,20 +2162,6 @@ def run_all():
         elif 'P3' in EXP:
             plot_WRF_intqx(EXP, '00:00',54, folders, date,'cnrm_1312')     
        
-
-    # tambien tengo entornos.py
-    #for h in range(18, 22):
-    #    for m in range(0, 60, 30):        
-    #        plot_WRF_diffvar_only('WSM6_domain3_NoahMP','P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
-    #
-    #for h in range(18, 22):
-    #    for m in range(0, 60, 30):    
-    #        plot_WRF_TyTd_only('WSM6_domain3_NoahMP', f"{h}:{m:02d}")
-    #        plot_WRF_TyTd_only('P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
-    #        
-    #plot_WRF_hovmoller_thetae('WSM6_domain3_NoahMP')
-    #plot_WRF_hovmoller_thetae('P3_3MOM_LF_domain3_NoahMP')
-    #plot_WRF_hovmoller_thetae('THOM_domain3_NoahMP')
    
     return
 

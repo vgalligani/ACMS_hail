@@ -170,7 +170,8 @@ def config_folders(server):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/vertical_crossSection'))         
             if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP+'/Sondeos')):
                 os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/Sondeos'))     
-                
+            if not os.path.exists( os.path.join(folders['save_dir_compare'],EXP+'/Comparison')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],EXP+'/Comparison'))                     
                 
         
     elif 'cnrm' in server: 
