@@ -169,7 +169,7 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     VEL       = radar.get_field(0, 'mean_doppler_velocity', copy=False)
     [lats_, lons_, _] = radar.get_gate_lat_lon_alt(0, reset_gate_coords=False, filter_transitions=False)
     start_index = len(prefix)
-    time        = folder+file_1745[start_index+1:start_index+5]
+    time        = prefix[start_index+1:start_index+5]
     fig, ax = plt.subplots(figsize=(8,8)) 
     pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=pyart.config.get_field_colormap('BuDRd18'), vmin=-12,  vmax=12)
     cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-12,12.01,2))
@@ -184,7 +184,7 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
     
     plt.show()
-    fig.savefig(save_dir_compare+'/OBS'+'/CSAPR2/ZH_CSAPR2_obs_'+time+'.png', dpi=300,transparent=False, bbox_inches='tight')
+    fig.savefig(save_dir_compare+'OBS'+'/CSAPR2/ZH_CSAPR2_obs_'+time+'.png', dpi=300,transparent=False, bbox_inches='tight')
     plt.close()
 
     #------ 1730
@@ -193,7 +193,7 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     VEL       = radar.get_field(0, 'mean_doppler_velocity', copy=False)
     [lats_, lons_, _] = radar.get_gate_lat_lon_alt(0, reset_gate_coords=False, filter_transitions=False)
     start_index = len(prefix)
-    time        = folder+file_1730[start_index+1:start_index+5]
+    time        = prefix[start_index+1:start_index+5]
     fig, ax = plt.subplots(figsize=(8,8)) 
     pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=pyart.config.get_field_colormap('BuDRd18'), vmin=-10,  vmax=10)
     cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-10,10.01,2))
@@ -208,7 +208,7 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
     
     plt.show()
-    fig.savefig(save_dir_compare+'/OBS'+'/CSAPR2/ZH_CSAPR2_obs_'+time+'.png', dpi=300,transparent=False, bbox_inches='tight')
+    fig.savefig(save_dir_compare+'OBS'+'/CSAPR2/ZH_CSAPR2_obs_'+time+'.png', dpi=300,transparent=False, bbox_inches='tight')
     plt.close()
 
 
