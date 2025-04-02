@@ -94,7 +94,7 @@ def plot_radar_cspr2_singletime(latrange, lonrange):
 
     prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
 
-    folders          = config_folders.config_folders('yakaira')
+    folders          = config_folders_final.config_folders('yakaira')
     radar_folder     = folders['csapr2_dir']
     save_dir_compare = folders['save_dir_compare']
    
@@ -111,7 +111,6 @@ def plot_radar_cspr2_singletime(latrange, lonrange):
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT,radarLON,100) 
     
     prefix = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/corcsapr2cfrppiqcM1.b1.20181110'
-
 
     for filename in file_list:
         radar    = pyart.io.read(filename) 
@@ -141,7 +140,60 @@ def plot_radar_cspr2_singletime(latrange, lonrange):
     return
 
 #------------------------------------------------------------------------------
-def plot_ZH1km_WRF_wWRF_shelicity(EXP, title, folders):
+def plot_VELradar_cspr2_singletime(latrange, lonrange):
+
+    prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
+
+    folders          = config_folders_final.config_folders('yakaira')
+    radar_folder     = folders['csapr2_dir']
+    save_dir_compare = folders['save_dir_compare']
+   
+    file_list    = sorted(glob.glob(radar_folder+'*b1*.nc'))
+    
+    # RMA1 
+    radarLAT = -32.12641
+    radarLON = -64.72837
+    TH_name  = 'attenuation_corrected_reflectivity_h'
+    elev     = 1 #(==1.4996338)
+    
+    [lat_radius, lon_radius] = pyplot_rings(radarLAT,radarLON,30)   
+    [lat_radius2, lon_radius2] = pyplot_rings(radarLAT,radarLON,60) 
+    [lat_radius2, lon_radius2] = pyplot_rings(radarLAT,radarLON,100) 
+    
+    folder    = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
+
+    file_1745 = 'corcsapr2cfrppiqcM1.b1.20181110.174503.nc' 
+    prefix    = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/corcsapr2cfrppiqcM1.b1.20181110.'
+
+    radar    = pyart.io.read(folder+file_1745) 
+    VEL      = radar.get_field(0, 'mean_doppler_velocity', copy=False)
+    [lats_, lons_, _] = radar.get_gate_lat_lon_alt(0, reset_gate_coords=False, filter_transitions=False)
+
+    start_index = len(prefix)
+    time        = folder+file_1745[start_index+1:start_index+5]
+
+    fig, ax = plt.subplots(figsize=(8,8)) 
+    pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=pyart.config.get_field_colormap('BuDRd18'), vmin=-10,  vmax=10)
+    cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-10,10.01,2))
+    cbar.cmap.set_under('white')
+    cbar.cmap.set_over('white')
+    ax.grid()       
+    ax.plot(prov[:,0],prov[:,1],color='k'); 
+    ax.set_xlim(lonrange); 
+    ax.set_ylim(latrange)
+    ax.set_title('CSAPR2 zoom obs elev '+str(elev)+ 'at ' + time)
+    ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
+    ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
+    
+    plt.show()
+    fig.savefig(save_dir_compare+'/OBS'+'/CSAPR2/ZH_CSAPR2_obs_'+time+'.png', dpi=300,transparent=False, bbox_inches='tight')
+    plt.close()
+ 
+    return
+
+
+#------------------------------------------------------------------------------
+def plot_ZH1km_WRF_wWRF_shelicity(EXP, title, folders, domain):
     
     import matplotlib
 
@@ -164,8 +216,9 @@ def plot_ZH1km_WRF_wWRF_shelicity(EXP, title, folders):
     [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
     
-    prefix   = 'wrfout_d02_2018-11-10_'+title
-    filename = os.path.join(WRFfolder, 'wrfout_d02_2018-11-10_'+title+':00')
+    
+    prefix   = 'wrfout_'+domain+'_2018-11-10_'+title
+    filename = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-11-10_'+title+':00')
 
     ncfile       = Dataset(filename,'r')        
     #------ READ WRF variables of interest 
@@ -278,7 +331,7 @@ def plot_ZH1km_WRF_wWRF_shelicity(EXP, title, folders):
     return
     
 #------------------------------------------------------------------------------
-def plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, title, folders):
+def plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, title, folders, domain):
     
     import matplotlib
 
@@ -301,7 +354,7 @@ def plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, title, folders):
     [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
     
-    prefix   = 'wrfout_d02_2018-11-10_'+title
+    prefix   = 'wrfout_'+domain+'_2018-11-10_'+title
     filename = os.path.join(WRFfolder, prefix+':00')
     ncfile       = Dataset(filename,'r')        
     
@@ -369,7 +422,7 @@ def plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, title, folders):
     
     
 #------------------------------------------------------------------------------
-def plot_WRF_intqx(EXP, title, mp, folders):
+def plot_WRF_intqx(EXP, title, mp, folders, domain):
     
     import matplotlib
 
@@ -392,7 +445,6 @@ def plot_WRF_intqx(EXP, title, mp, folders):
     [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
     
-    domain = 'd02'
     prefix   = 'wrfout_'+domain+'_2018-11-10_'+title
     filename = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-11-10_'+title+':00')
 
@@ -748,6 +800,7 @@ def plot_ZH1km_WRF(EXP, title, domain, servidor, folders):
 
         #ax.set_xlim([-65.5,-62]); orig. 
         #ax.set_ylim([-35,-31])
+        
     ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
     ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
         
@@ -869,7 +922,7 @@ def plot_ZH1km_WRFdate(EXP, title, domain, servidor, folders, date):
 #------------------------------------------------------------------------------
 def plot_ZH1_COLMAX_WRF(EXP, title, folders):
 
-    folders   = config_folders.config_folders('yakaira')
+    folders   = config_folders_final.config_folders('yakaira')
     WRFfolder = folders[EXP]
     save_dir_compare = folders['save_dir_compare']
 
@@ -1164,13 +1217,13 @@ def plot_general_radar_evolution(radar_folder, title, save_dir_compare, elev):
 def plot_domain(server, exp):
     
     
-    folders=config_folders.config_folders(server)
+    folders=config_folders_final.config_folders(server)
     save_dir = folders['save_dir_compare']
 
 
     prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
 
-    folders=config_folders.config_folders('yakaira')
+    folders=config_folders_final.config_folders('yakaira')
     
     ncfile_d01 = Dataset( folders[exp]+'wrfout_d01_2018-11-10_17:00:00','r')     
     ncfile_d02 = Dataset( folders[exp]+'wrfout_d02_2018-11-10_16:00:00','r')    
@@ -1313,7 +1366,7 @@ def plot_common_transect_level_MAP(EXP_WSM6, time):
     radarLAT_RMA1 = -31.441389
     radarLON_RMA1 = -64.191944
 
-    folders=config_folders.config_folders('yakaira')
+    folders=config_folders_final.config_folders('yakaira')
     save_dir_compare=folders['save_dir_compare']    
     #---------------------------------------------------------
     # WSM6 files
@@ -1430,7 +1483,7 @@ def plot_WRF_diffvar_only(EXP1, EXP2, title):
     
     import matplotlib
 
-    folders   = config_folders.config_folders('yakaira')
+    folders   = config_folders_final.config_folders('yakaira')
     WRFfolder1 = folders[EXP1]
     WRFfolder2 = folders[EXP2]
     save_dir_compare = folders['save_dir_compare']
@@ -1537,7 +1590,7 @@ def plot_WRF_hovmoller_thetae(EXP):
     import matplotlib
     import xarray as xr
 
-    folders   = config_folders.config_folders('yakaira')
+    folders   = config_folders_final.config_folders('yakaira')
     WRFfolder = folders[EXP]
     save_dir_compare = folders['save_dir_compare']
     
@@ -1608,7 +1661,7 @@ def plot_WRF_hovmoller_thetae(EXP):
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def plot_WRF_var_only(EXP, title, folders):    
+def plot_WRF_var_only(EXP, title, folders, domain):    
     import matplotlib
 
     #folders   = config_folders.config_folders('yakaira')
@@ -1630,8 +1683,8 @@ def plot_WRF_var_only(EXP, title, folders):
     [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
     
-    prefix   = 'wrfout_d02_2018-11-10_'+title
-    filename = os.path.join(WRFfolder, 'wrfout_d02_2018-11-10_'+title+':00')
+    prefix   = 'wrfout_'+domain+'_2018-11-10_'+title
+    filename = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-11-10_'+title+':00')
     ncfile       = Dataset(filename,'r')        
     
     #------ READ WRF variables of interest ------------------------------------
@@ -1777,7 +1830,7 @@ def plot_WRF_TyTd_only(EXP, title):
     
     import matplotlib
 
-    folders   = config_folders.config_folders('yakaira')
+    folders   = config_folders_final.config_folders('yakaira')
     WRFfolder = folders[EXP]
     save_dir_compare = folders['save_dir_compare']
 
@@ -1963,22 +2016,38 @@ def run_all1():
     #main('THOM_domain3_NoahMP', folders)
         
     # EXPS que analizo finalmente: 
-    EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
-            'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP', 
-            'initcond_fromwrf_domain3_WSM6_d01P3_54', 'P3_3MOM_LF_domain_noNoah']
+    #EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
+    #        'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 
+    EXPs = ['WSM6_domain3_YSU_noNoahMP']
+    # , 'P3_3MOM_LF_domain_noNoah']
         
     for EXP in EXPs:
         for h in range(15, 22):
             for m in range(0, 60, 30):
                 plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
-                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders)
+                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
                 plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders)
-                plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders)
+                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+                plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd02')
                 if 'WSM6' in EXP:	 
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders)#,'yakaira')
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
                 elif 'P3' in EXP:
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders)#,'yakaira')
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+
+    EXPs = ['initcond_fromwrf_domain3_WSM6_d01P3_54']
+    for EXP in EXPs:
+        for h in range(15, 22):
+            for m in range(0, 60, 30):
+                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd01', folders)
+                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd01')
+                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd01', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd01')
+                plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd01')
+                if 'WSM6' in EXP:	 
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
+                elif 'P3' in EXP:
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+
 
     #for h in range(18, 22):
     #    for m in range(0, 60, 30):        
@@ -2087,6 +2156,18 @@ def run_transects():
         
     return
 
+
+def run_extra_toadd_tomain():
+    
+    folders=config_folders_final.config_folders('yakaira')
+
+    for h in range(15, 22):
+        for m in range(0, 60, 30):
+            plot_ZH1km_WRF('WSM6_domain3', f"{h}:{m:02d}", 'd01', 'yakaira', folders)   
+                
+        
+    return
+
 #----------------------------------------------------------------
 def run_cnrm():
     
@@ -2099,30 +2180,6 @@ def run_cnrm():
             plot_ZH1km_WRF(EXP, f"{h}:{m:02d}",domain,'cnrm')
             
     return
-
-#----------------------------------------------------------------
-def run_yakaira():
-    
-    folders=config_folders.config_folders('yakaira')
-
-    #EXP = 'WSM6_domain3_NoahMP'; domain = 'd02'
-    EXP = 'WSM6_domain3_NoahMP_YSU'; domain = 'd02'    
-    for h in range(18, 23):
-        for m in range(0, 60, 30): 
-            #plot_ZH1km_WRF(EXP, f"{h}:{m:02d}",domain,'yakaira')
-            plot_WRF_intqx(EXP, f"{h}:{m:02d}",6)#,'yakaira')
-            
-    # Ver de reproducir mapas de lluis
-    # En tonos multi- color (formato de lluvia estandar del NCAR) se grafica la precipitaci ́on acumulada los 15 minutos previos; 
-    # P4A.plot_precip_WRF(EXP, '19:00', '18:30', domain, 'yakaira')
-    # P4A.plot_precip_WRF(EXP, '19:30', '19:00', domain, 'yakaira')    
-    # P4A.plot_precip_WRF(EXP, '20:00', '19:30', domain, 'yakaira')    
-    # P4A.plot_precip_WRF(EXP, '20:30', '20:00', domain, 'yakaira')    
-    # P4A.plot_precip_WRF(EXP, '21:00', '20:30', domain, 'yakaira')    
-    # P4A.plot_precip_WRF(EXP, '21:30', '21:00', domain, 'yakaira')    
-    
-    return
-
 
 #----------------------------------------------------------------
 def check_0411case():
@@ -2138,20 +2195,6 @@ def check_0411case():
             plot_ZH1km_WRF('0411_WSM6check', f"{h}:{m:02d}", 'd02','yakaira')
 
     return
-
-#----------------------------------------------------------------
-def check_1312case():
-
-    folders=config_folders.config_folders('yakaira')
-
-    for h in range(15, 22):
-        for m in range(0, 60, 30): 
-            plot_ZH1km_WRF('2501_WSM6check', f"{h:02d}:{m:02d}", 'd01','yakaira')
-    #plot_ZH1km_WRF('1312_WSM6check', "23:00", 'd02','yakaira')
-    #plot_ZH1km_WRF('1312_WSM6check', "23:30", 'd02','yakaira')
-
-    return
-
 
 #----------------------------------------------------------------
 run_all1() 

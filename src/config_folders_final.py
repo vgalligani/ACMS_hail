@@ -38,6 +38,7 @@ def config_folders(server):
         folders['P3_54_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_54_domain3_NoahMP_YSU/'
         folders['WSM6_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP_YSU/'
 
+        folders['WSM6_domain3_YSU_noNoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_YSU_noNoahMP/'
         #folders['0411_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/WSM6/'
         #folders['0411_P3check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/P3_mp54/'
         #folders['1312_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_13122018_datos/WSM6noNoah/'
