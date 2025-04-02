@@ -2090,8 +2090,8 @@ def run_all():
     plot_domain('yakaira', 'WSM6_domain3_NoahMP')
     plot_domain('yakaira', 'WSM6_domain4_NoahMP')
     plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_highres')
-    plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_lowres')
-    plot_domain('yakaira', 'P3_3MOM_LF_domain5_NoahMP')
+    #plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_lowres')
+    #plot_domain('yakaira', 'P3_3MOM_LF_domain5_NoahMP')
 
     #main('WSM6_domain2', folders)
     #main('WSM6_domain3', folders)
@@ -2101,35 +2101,35 @@ def run_all():
     #main('THOM_domain3_NoahMP', folders)
         
     # EXPS que analizo finalmente: 
-    EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 
-            'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP']
+    #EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 
+    #        'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP']
     # , 'P3_3MOM_LF_domain_noNoah']
-        
-    for EXP in EXPs:
-        for h in range(21, 23):
-            for m in range(0, 60, 30):
-                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
-                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
-                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
-                plot_WRF_var_only(EXP, f"{h}:{m:02d}", folders, 'd02')
-                if 'WSM6' in EXP:	 
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
-                elif 'P3' in EXP:
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
-        for m in range(0, 60, 30):            
-            plot_ZH1km_WRF_wWRFwind(EXP, f"23:{m:02d}", 'd02', folders)
-            plot_ZH1km_WRF_wWRF_shelicity(EXP, f"23:{m:02d}", folders, 'd02')
-            plot_ZH1km_WRF(EXP, f"23:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-            plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"23:{m:02d}", folders, 'd02')
-            plot_WRF_var_only(EXP, f"23:{m:02d}", folders, 'd02')
-            if 'WSM6' in EXP:	 
-                plot_WRF_intqx(EXP, f"23:{m:02d}",6, folders, 'd02')#,'yakaira')
-            elif 'P3' in EXP:
-                plot_WRF_intqx(EXP, f"23:{m:02d}",54, folders, 'd02')#,'yakaira')
+    #    
+    #for EXP in EXPs:
+    #    for h in range(21, 23):
+    #        for m in range(0, 60, 30):
+    #            plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
+    #            plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
+    #            plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+    #            plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+    #            plot_WRF_var_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+    #            if 'WSM6' in EXP:	 
+    #                plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
+    #            elif 'P3' in EXP:
+    #                plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+    #    for m in range(0, 60, 30):            
+    #        plot_ZH1km_WRF_wWRFwind(EXP, f"23:{m:02d}", 'd02', folders)
+    #        plot_ZH1km_WRF_wWRF_shelicity(EXP, f"23:{m:02d}", folders, 'd02')
+    #        plot_ZH1km_WRF(EXP, f"23:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+    #        plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"23:{m:02d}", folders, 'd02')
+    #        plot_WRF_var_only(EXP, f"23:{m:02d}", folders, 'd02')
+    #        if 'WSM6' in EXP:	 
+    #            plot_WRF_intqx(EXP, f"23:{m:02d}",6, folders, 'd02')#,'yakaira')
+    #        elif 'P3' in EXP:
+    #            plot_WRF_intqx(EXP, f"23:{m:02d}",54, folders, 'd02')#,'yakaira')
                     
 
-    EXPs = 'P3_3MOM_LF_domain3_NoahMP_highres'
+    EXPs = ['P3_3MOM_LF_domain3_NoahMP_highres']
     for EXP in EXPs:
         for h in range(21, 23):
             for m in range(0, 60, 30):
@@ -2236,6 +2236,6 @@ def run_cnrm():
     return
 
 #-----------------------------------------------------------------
-run_all() 
+#run_all() 
 #run_obs_radar()
 #plot_VELradar_cspr2_singletime([-33.4,-31], [-65.5,-63.5])
