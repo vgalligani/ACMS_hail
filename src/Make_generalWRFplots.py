@@ -1995,144 +1995,9 @@ def plot_WRF_TyTd_only(EXP, title):
     # #plt.close()
 
 
-    return#------------------------------------------------------------------------------
-
-
-#------------------------------------------------------------------------------
-# RUN MAIN
-def main(exp, folders): 
-    
-    # Plot a general domain subplot 4x5 map of WRF_DBZ every 30 min
-    plot_general_WRF_evolution(WRFfolder=folders[exp], title=exp, save_dir_compare=folders['save_dir_compare'], 
-                               other_WRFfolder='', OTHER_NAME='')
-
-    plot_general_WRF_evolution(WRFfolder=folders[exp], title=exp+'_Maitezoom', save_dir_compare=folders['save_dir_compare'], 
-                               other_WRFfolder='', OTHER_NAME='')
-    
-    
-    # Make a foler for each experiment and save figure for each time
-    newdir = os.path.join(folders['save_dir_compare'], exp) 
-    if not os.path.exists(newdir):
-            os.makedirs(newdir)
-    single_WRF_files(WRFfolder=folders[exp], title=exp+'_Maitezoom', save_dir_compare=newdir)
-    single_WRF_files(WRFfolder=folders[exp], title=exp, save_dir_compare=newdir)
-    
     return
 
 #------------------------------------------------------------------------------
-
-def run_all1(): 
-    
-    # borrar los config foldeders de adentro y pasarlos afurea! 
-    folders=config_folders_final.config_folders('yakaira')
-
-    #plot_domain('yakaira', 'WSM6_domain2')
-    plot_domain('yakaira', 'WSM6_domain3')
-    plot_domain('yakaira', 'WSM6_domain3_NoahMP')
-    plot_domain('yakaira', 'WSM6_domain4_NoahMP')
-    plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_highres')
-    #plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_lowres')
-    #plot_domain('yakaira', 'P3_3MOM_LF_domain5_NoahMP')
-
-    #main('WSM6_domain2', folders)
-    #main('WSM6_domain3', folders)
-    #main('WSM6_domain3_NoahMP', folders)
-    #main('WSM6_domain4_NoahMP', folders)
-    #main('P3_3MOM_LF_domain3_NoahMP', folders)
-    #main('THOM_domain3_NoahMP', folders)
-        
-    # EXPS que analizo finalmente: 
-    #EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
-    #        'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP']
-    # , 'P3_3MOM_LF_domain_noNoah']
-        
-    # for EXP in EXPs:
-    #     for h in range(15, 22):
-    #         for m in range(0, 60, 30):
-    #             plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
-    #             plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
-    #             plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-    #             plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
-    #             plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd02')
-    #             if 'WSM6' in EXP:	 
-    #                 plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
-    #             elif 'P3' in EXP:
-    #                 plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
-
-    EXPs = ['initcond_fromwrf_domain3_WSM6_d01P3_54']
-    for EXP in EXPs:
-        for h in range(15, 22):
-            for m in range(0, 60, 30):
-                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd01', folders)
-                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd01')
-                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd01', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd01')
-                plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd01')
-                #if 'WSM6' in EXP:	 
-                #    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd01')#,'yakaira')
-                #elif 'P3' in EXP:
-                plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd01')#,'yakaira')
-
-
-    #for h in range(18, 22):
-    #    for m in range(0, 60, 30):        
-    #        plot_WRF_diffvar_only('WSM6_domain3_NoahMP','P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
-    #        plot_WRF_var_only('WSM6_domain3_NoahMP', f"{h}:{m:02d}")
-    #        plot_WRF_var_only('P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
-    #
-    #for h in range(18, 22):
-    #    for m in range(0, 60, 30):    
-    #        plot_WRF_TyTd_only('WSM6_domain3_NoahMP', f"{h}:{m:02d}")
-    #        plot_WRF_TyTd_only('P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
-    #        
-    #plot_WRF_hovmoller_thetae('WSM6_domain3_NoahMP')
-    #plot_WRF_hovmoller_thetae('P3_3MOM_LF_domain3_NoahMP')
-    #plot_WRF_hovmoller_thetae('THOM_domain3_NoahMP')
-   
-    return
-
-def run_all():
-
-    folders=config_folders_final.config_folders('yakaira')
-    
-    EXP =  '1312_WSM6check' # '2501_WSM6check' 
-    date =  '2018-12-13' # '2019-01-25'
-
-    for h in range(18, 23):
-        for m in range(0, 60, 30):
-            plot_ZH1km_WRFdate(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders, date)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-    plot_ZH1km_WRFdate(EXP, "23:00", 'd02', 'yakaira', folders, date)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-    plot_ZH1km_WRFdate(EXP, "23:30", 'd02', 'yakaira', folders, date)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-    plot_ZH1km_WRFdate(EXP, "00:00", 'd02', 'yakaira', folders, '2018-12-14')   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-    plot_ZH1km_WRFdate(EXP, "00:30", 'd02', 'yakaira', folders, '2018-12-14')   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-
-                
-    return
-
-
-def run_all2():
-
-    folders=config_folders_final.config_folders('yakaira')
- 
-    # Evolution of RMA1 to understund evolution of supercell  every 30 min 
-    plot_general_radar_evolution(radar_folder=folders['rma1_dir'], title='RMA1', save_dir_compare=folders['save_dir_compare'], elev=3)
-   
-    #PLOT CSARP2
-    plot_radar_cspr2_singletime([-33,-31.5], [-65.5,-63.5])
-
-    #PLOT ALL RMA1:
-    radar_folder     = folders['rma1_dir']
-    file_list    = sorted(glob.glob(radar_folder+'*01.nc'))
-    prefix = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RMA1/cfrad.20181110_'
-    start_index = len(prefix)
-    for filename in file_list:
-        time        = filename[start_index:start_index+4]
-        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=0, folders=folders['save_dir_compare'])
-        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=1, folders=folders['save_dir_compare'])
-    
- 
-    return
-
 def run_transects(): 
 
     # Agregar transectas para el EXP='WSM6_domain3_NoahMP' y su correspondiente p3
@@ -2182,16 +2047,141 @@ def run_transects():
         
     return
 
-
-def run_extra_toadd_tomain():
+#------------------------------------------------------------------------------
+# RUN MAIN
+def main(exp, folders): 
     
+    # Plot a general domain subplot 4x5 map of WRF_DBZ every 30 min
+    plot_general_WRF_evolution(WRFfolder=folders[exp], title=exp, save_dir_compare=folders['save_dir_compare'], 
+                               other_WRFfolder='', OTHER_NAME='')
+
+    plot_general_WRF_evolution(WRFfolder=folders[exp], title=exp+'_Maitezoom', save_dir_compare=folders['save_dir_compare'], 
+                               other_WRFfolder='', OTHER_NAME='')
+    
+    
+    # Make a foler for each experiment and save figure for each time
+    newdir = os.path.join(folders['save_dir_compare'], exp) 
+    if not os.path.exists(newdir):
+            os.makedirs(newdir)
+    single_WRF_files(WRFfolder=folders[exp], title=exp+'_Maitezoom', save_dir_compare=newdir)
+    single_WRF_files(WRFfolder=folders[exp], title=exp, save_dir_compare=newdir)
+    
+    return
+
+#------------------------------------------------------------------------------
+def run_all(): 
+    
+    # borrar los config foldeders de adentro y pasarlos afurea! 
     folders=config_folders_final.config_folders('yakaira')
 
-    for h in range(15, 22):
-        for m in range(0, 60, 30):
-            plot_ZH1km_WRF('WSM6_domain3', f"{h}:{m:02d}", 'd01', 'yakaira', folders)   
-                
+    plot_domain('yakaira', 'WSM6_domain2')
+    plot_domain('yakaira', 'WSM6_domain3')
+    plot_domain('yakaira', 'WSM6_domain3_NoahMP')
+    plot_domain('yakaira', 'WSM6_domain4_NoahMP')
+    plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_highres')
+    plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_lowres')
+    plot_domain('yakaira', 'P3_3MOM_LF_domain5_NoahMP')
+
+    #main('WSM6_domain2', folders)
+    #main('WSM6_domain3', folders)
+    #main('WSM6_domain3_NoahMP', folders)
+    #main('WSM6_domain4_NoahMP', folders)
+    #main('P3_3MOM_LF_domain3_NoahMP', folders)
+    #main('THOM_domain3_NoahMP', folders)
         
+    # EXPS que analizo finalmente: 
+    EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
+            'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP']
+    # , 'P3_3MOM_LF_domain_noNoah']
+        
+    for EXP in EXPs:
+        for h in range(15, 22):
+            for m in range(0, 60, 30):
+                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
+                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
+                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+                plot_WRF_var_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+                if 'WSM6' in EXP:	 
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
+                elif 'P3' in EXP:
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+
+#------------------------------------------------------------------------------
+def run_all1(): 
+
+    folders=config_folders_final.config_folders('yakaira')
+    
+    EXPs = ['initcond_fromwrf_domain3_WSM6_d01P3_54']
+    for EXP in EXPs:
+        for h in range(15, 22):
+            for m in range(0, 60, 30):
+                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd01', folders)
+                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd01')
+                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd01', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd01')
+                plot_WRF_var_only(EXP, f"{h}:{m:02d}", folders, 'd01')
+                plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd01')#,'yakaira')
+
+
+    #for h in range(18, 22):
+    #    for m in range(0, 60, 30):        
+    #        plot_WRF_diffvar_only('WSM6_domain3_NoahMP','P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
+    #        plot_WRF_var_only('WSM6_domain3_NoahMP', f"{h}:{m:02d}")
+    #        plot_WRF_var_only('P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
+    #
+    #for h in range(18, 22):
+    #    for m in range(0, 60, 30):    
+    #        plot_WRF_TyTd_only('WSM6_domain3_NoahMP', f"{h}:{m:02d}")
+    #        plot_WRF_TyTd_only('P3_3MOM_LF_domain3_NoahMP', f"{h}:{m:02d}")
+    #        
+    #plot_WRF_hovmoller_thetae('WSM6_domain3_NoahMP')
+    #plot_WRF_hovmoller_thetae('P3_3MOM_LF_domain3_NoahMP')
+    #plot_WRF_hovmoller_thetae('THOM_domain3_NoahMP')
+   
+    return
+
+#------------------------------------------------------------------------------
+def run_1213case():
+
+    folders=config_folders_final.config_folders('yakaira')
+    
+    EXP =  '1312_WSM6check' # '2501_WSM6check' 
+    date =  '2018-12-13' # '2019-01-25'
+
+    for h in range(18, 23):
+        for m in range(0, 60, 30):
+            plot_ZH1km_WRFdate(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders, date)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+    plot_ZH1km_WRFdate(EXP, "23:00", 'd02', 'yakaira', folders, date)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+    plot_ZH1km_WRFdate(EXP, "23:30", 'd02', 'yakaira', folders, date)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+    plot_ZH1km_WRFdate(EXP, "00:00", 'd02', 'yakaira', folders, '2018-12-14')   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+    plot_ZH1km_WRFdate(EXP, "00:30", 'd02', 'yakaira', folders, '2018-12-14')   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+
+                
+    return
+
+#------------------------------------------------------------------------------
+def run_obs_radar():
+
+    folders=config_folders_final.config_folders('yakaira')
+ 
+    # Evolution of RMA1 to understund evolution of supercell  every 30 min 
+    plot_general_radar_evolution(radar_folder=folders['rma1_dir'], title='RMA1', save_dir_compare=folders['save_dir_compare'], elev=3)
+   
+    #PLOT CSARP2
+    plot_radar_cspr2_singletime([-33,-31.5], [-65.5,-63.5])
+
+    #PLOT ALL RMA1:
+    radar_folder     = folders['rma1_dir']
+    file_list    = sorted(glob.glob(radar_folder+'*01.nc'))
+    prefix = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RMA1/cfrad.20181110_'
+    start_index = len(prefix)
+    for filename in file_list:
+        time        = filename[start_index:start_index+4]
+        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=0, folders=folders['save_dir_compare'])
+        plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=1, folders=folders['save_dir_compare'])
+    
+ 
     return
 
 #----------------------------------------------------------------
@@ -2207,22 +2197,7 @@ def run_cnrm():
             
     return
 
-#----------------------------------------------------------------
-def check_0411case():
-
-    folders=config_folders.config_folders('yakaira')
-
-    for h in range(15, 23):
-        for m in range(0, 60, 30): 
-            plot_ZH1km_WRF('0411_P3check', f"{h}:{m:02d}", 'd02','yakaira')
-
-    for h in range(15, 23):
-        for m in range(0, 60, 30): 
-            plot_ZH1km_WRF('0411_WSM6check', f"{h}:{m:02d}", 'd02','yakaira')
-
-    return
-
-#----------------------------------------------------------------
-run_all1() 
-run_all2()
+#-----------------------------------------------------------------
+run_all() 
+run_obs_radar()
 plot_VELradar_cspr2_singletime([-35,-31], [-65.5,-62])
