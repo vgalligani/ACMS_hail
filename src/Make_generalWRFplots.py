@@ -2042,22 +2042,22 @@ def run_all1():
     #main('THOM_domain3_NoahMP', folders)
         
     # EXPS que analizo finalmente: 
-    EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
-            'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP']
+    #EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
+    #        'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP']
     # , 'P3_3MOM_LF_domain_noNoah']
         
-    for EXP in EXPs:
-        for h in range(15, 22):
-            for m in range(0, 60, 30):
-                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
-                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
-                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
-                plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd02')
-                if 'WSM6' in EXP:	 
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
-                elif 'P3' in EXP:
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+    # for EXP in EXPs:
+    #     for h in range(15, 22):
+    #         for m in range(0, 60, 30):
+    #             plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
+    #             plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
+    #             plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+    #             plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+    #             plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd02')
+    #             if 'WSM6' in EXP:	 
+    #                 plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
+    #             elif 'P3' in EXP:
+    #                 plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
 
     EXPs = ['initcond_fromwrf_domain3_WSM6_d01P3_54']
     for EXP in EXPs:
