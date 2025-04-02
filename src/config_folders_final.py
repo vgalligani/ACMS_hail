@@ -106,7 +106,8 @@ def config_folders(server):
         #if not os.path.exists( os.path.join(folders['save_dir_compare'],'RadarSim')):
         #    os.makedirs(os.path.join(folders['save_dir_compare'],'RadarSim'))        
             
-
+        if not os.path.exists( os.path.join(folders['save_dir_compare'],'OBS')):
+                os.makedirs(os.path.join(folders['save_dir_compare'],'OBS'))    
         if not os.path.exists( os.path.join(folders['save_dir_compare'],'OBS/RMA1')):
                 os.makedirs(os.path.join(folders['save_dir_compare'],'OBS/RMA1'))    
         if not os.path.exists( os.path.join(folders['save_dir_compare'],'OBS/CSAPR2')):

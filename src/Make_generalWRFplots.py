@@ -2198,6 +2198,6 @@ def run_cnrm():
     return
 
 #-----------------------------------------------------------------
-run_all() 
+#run_all1() 
 run_obs_radar()
 plot_VELradar_cspr2_singletime([-35,-31], [-65.5,-62])
