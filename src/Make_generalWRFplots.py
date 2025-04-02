@@ -63,7 +63,7 @@ def plot_radar_singletime(rfiles, time, elev, latrange, lonrange, colmax, folder
         gatefilter = pyart.filters.GateFilter(radar)
         gatefilter.exclude_transition()
         gatefilter.exclude_equal('RHOHV', 0.9)
-        lons_,lats_,ZHcolmax = vito_functions.get_colmax(radar, TH_name, gatefilter)
+        lons_,lats_,ZHcolmax = package_functions.get_colmax(radar, TH_name, gatefilter)
         pcm = ax.pcolormesh(lons_, lats_, ZHcolmax, cmap=P4A.colormaps('ref'), vmin=0,  vmax=70)
         ax.set_title('RMA1 zoom obs COLMAX at ' + time)
         title = time+'_colmax'    
