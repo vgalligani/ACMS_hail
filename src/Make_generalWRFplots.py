@@ -160,18 +160,40 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT,radarLON,60) 
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT,radarLON,100) 
     
-    folder    = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
-
-    file_1745 = 'corcsapr2cfrppiqcM1.b1.20181110.174503.nc' 
     prefix    = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/corcsapr2cfrppiqcM1.b1.20181110.'
-
-    radar    = pyart.io.read(folder+file_1745) 
-    VEL      = radar.get_field(0, 'mean_doppler_velocity', copy=False)
+    folder    = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/CSAPR2/'
+    
+    #------ 1745
+    file_1745 = 'corcsapr2cfrppiqcM1.b1.20181110.174503.nc' 
+    radar     = pyart.io.read(folder+file_1745) 
+    VEL       = radar.get_field(0, 'mean_doppler_velocity', copy=False)
     [lats_, lons_, _] = radar.get_gate_lat_lon_alt(0, reset_gate_coords=False, filter_transitions=False)
-
     start_index = len(prefix)
     time        = folder+file_1745[start_index+1:start_index+5]
+    fig, ax = plt.subplots(figsize=(8,8)) 
+    pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=pyart.config.get_field_colormap('BuDRd18'), vmin=-12,  vmax=12)
+    cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-12,12.01,2))
+    cbar.cmap.set_under('white')
+    cbar.cmap.set_over('white')
+    ax.grid()       
+    ax.plot(prov[:,0],prov[:,1],color='k'); 
+    ax.set_xlim(lonrange); 
+    ax.set_ylim(latrange)
+    ax.set_title('CSAPR2 zoom obs elev '+str(elev)+ 'at ' + time)
+    ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
+    ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
+    
+    plt.show()
+    fig.savefig(save_dir_compare+'/OBS'+'/CSAPR2/ZH_CSAPR2_obs_'+time+'.png', dpi=300,transparent=False, bbox_inches='tight')
+    plt.close()
 
+    #------ 1730
+    file_1730 = 'corcsapr2cfrppiqcM1.b1.20181110.173003.nc' 
+    radar     = pyart.io.read(folder+file_1730) 
+    VEL       = radar.get_field(0, 'mean_doppler_velocity', copy=False)
+    [lats_, lons_, _] = radar.get_gate_lat_lon_alt(0, reset_gate_coords=False, filter_transitions=False)
+    start_index = len(prefix)
+    time        = folder+file_1730[start_index+1:start_index+5]
     fig, ax = plt.subplots(figsize=(8,8)) 
     pcm = ax.pcolormesh(lons_, lats_, VEL, cmap=pyart.config.get_field_colormap('BuDRd18'), vmin=-10,  vmax=10)
     cbar = plt.colorbar(pcm, ax=ax, shrink=1, label=r'CSAPR2 vel (0.5$^o$)', ticks=np.arange(-10,10.01,2))
@@ -188,6 +210,10 @@ def plot_VELradar_cspr2_singletime(latrange, lonrange):
     plt.show()
     fig.savefig(save_dir_compare+'/OBS'+'/CSAPR2/ZH_CSAPR2_obs_'+time+'.png', dpi=300,transparent=False, bbox_inches='tight')
     plt.close()
+
+
+    
+    #------
  
     return
 
@@ -2018,21 +2044,23 @@ def run_all1():
     # EXPS que analizo finalmente: 
     #EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
     #        'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 
-    EXPs = ['WSM6_domain3_YSU_noNoahMP']
+    #EXPs = ['WSM6_domain3_YSU_noNoahMP']
     # , 'P3_3MOM_LF_domain_noNoah']
         
-    for EXP in EXPs:
-        for h in range(15, 22):
-            for m in range(0, 60, 30):
-                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
-                plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
-                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
-                plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd02')
-                if 'WSM6' in EXP:	 
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
-                elif 'P3' in EXP:
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+# =============================================================================
+#     for EXP in EXPs:
+#         for h in range(15, 22):
+#             for m in range(0, 60, 30):
+#                 plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
+#                 plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
+#                 plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
+#                 plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+#                 plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd02')
+#                 if 'WSM6' in EXP:	 
+#                     plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
+#                 elif 'P3' in EXP:
+#                     plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+# =============================================================================
 
     EXPs = ['initcond_fromwrf_domain3_WSM6_d01P3_54']
     for EXP in EXPs:
@@ -2044,9 +2072,9 @@ def run_all1():
                 plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd01')
                 plot_WRF_var_only('THOM_domain3_NoahMP', f"{h}:{m:02d}", folders, 'd01')
                 if 'WSM6' in EXP:	 
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd01')#,'yakaira')
                 elif 'P3' in EXP:
-                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
+                    plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd01')#,'yakaira')
 
 
     #for h in range(18, 22):
@@ -2104,6 +2132,7 @@ def run_all2():
         time        = filename[start_index:start_index+4]
         plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=0, folders=folders['save_dir_compare'])
         plot_radar_singletime(filename, time, 3, [-35,-31], [-65.5,-62], colmax=1, folders=folders['save_dir_compare'])
+    
  
     return
 
@@ -2199,4 +2228,4 @@ def check_0411case():
 #----------------------------------------------------------------
 run_all1() 
 run_all2()
-
+plot_VELradar_cspr2_singletime([-35,-31], [-65.5,-62])
