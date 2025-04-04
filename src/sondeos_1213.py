@@ -55,13 +55,13 @@ def makesndfigure(ncfile, figuretitle, server, lat, lon):
     # De referencia plot contour of observed simulation 
     folders       = config_folders.config_folders(server)
     TH_name       = 'TH'
-    file          = 'cfrad.20181110_202339.0000_to_20181110_203020.0000_RMA1_0301_01.nc'
-    radar         = pyart.io.read(os.path.join(folders['rma1_dir'], file)) 
+    #file          = 'cfrad.20181110_202339.0000_to_20181110_203020.0000_RMA1_0301_01.nc'
+    #radar         = pyart.io.read(os.path.join(folders['rma1_dir'], file)) 
     
     # Configure a gatefilter to filter out copolar correlation coefficient values > 0.9
-    gatefilter = pyart.filters.GateFilter(radar)
-    gatefilter.exclude_transition()
-    gatefilter.exclude_equal('RHOHV', 0.9)    
+    #gatefilter = pyart.filters.GateFilter(radar)
+    #gatefilter.exclude_transition()
+    #gatefilter.exclude_equal('RHOHV', 0.9)    
 
     if 'yakaira' in server:
         prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')    
@@ -153,10 +153,10 @@ def makesndfigure(ncfile, figuretitle, server, lat, lon):
     # figure and put it in the upper right hand corner.
     h = inset_axes(skew.ax, '40%', '40%', loc=1, borderpad=3) #,
 
-    ZHelev18 = radar.get_field(3, TH_name, copy=False)
-    ZHelev18[np.where(ZHelev18<4)]=np.nan
-    [lats_, lons_, _] = radar.get_gate_lat_lon_alt(3, reset_gate_coords=False, filter_transitions=False)
-    h.pcolormesh(lons_, lats_, ZHelev18, cmap=P4A.colormaps('ref'), vmin=5,  vmax=65)
+    #ZHelev18 = radar.get_field(3, TH_name, copy=False)
+    #ZHelev18[np.where(ZHelev18<4)]=np.nan
+    #[lats_, lons_, _] = radar.get_gate_lat_lon_alt(3, reset_gate_coords=False, filter_transitions=False)
+    #h.pcolormesh(lons_, lats_, ZHelev18, cmap=P4A.colormaps('ref'), vmin=5,  vmax=65)
     h.plot(prov[:,0],prov[:,1],color='k'); 
     h.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
     h.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)        
@@ -209,7 +209,7 @@ def plot_sondeos(EXP, random_points, domain, title, server, sndLoc):
         fn = 'etopo1_bedrock.nc'  
         
     prefix   = 'wrfout_'+domain+'_2018-12-13_'+title
-    filename = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-11-10_'+title+':00')
+    filename = os.path.join(WRFfolder, 'wrfout_'+domain+'_2018-12-13_'+title+':00')
     ncfile   = Dataset(filename,'r') 
     wrflat      = wrf.getvar( ncfile,"lat") 
     wrflon      = wrf.getvar( ncfile,"lon")
@@ -510,6 +510,6 @@ def plot_compare_wrf_sondes(df, server):
     
 #------------------------------------------------------------------------------
 dfsondeos = plot_domain_SurfObs('cnrm_1312')
-#plot_many_wrf_sondes(dfsondeos)
-plot_compare_wrf_sondes(dfsondeos, 'cnrm_1312')
+plot_many_wrf_sondes(dfsondeos)
+#plot_compare_wrf_sondes(dfsondeos, 'cnrm_1312')
 

@@ -237,7 +237,7 @@ def plot_all_WRF_variables(time, domain, server):
                'vmin': -12,
                'vmax': 28,
                'plottitle': 'Td 2m '+time, 
-               'filename': save_dir_compare+'/Comparison/td2m_Comparison_WSM6noNoah/td2m_'+'Comparison_'+time+'.png' }
+               'filename': save_dir_compare+'/Comparison/td2m_'+'Comparison_'+time+'.png' }
 
     fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
     counter=0
@@ -257,7 +257,7 @@ def plot_all_WRF_variables(time, domain, server):
                 'vmin': 0,
                 'vmax': 40,
                 'plottitle': 'T 2m '+time, 
-                'filename': save_dir_compare+'/Comparison/t2m_Comparison_WSM6noNoah/t2m_'+'Comparison_'+time+'.png' }    
+                'filename': save_dir_compare+'/Comparison/t2m_'+'Comparison_'+time+'.png' }    
     
     fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
     counter=0
@@ -354,7 +354,7 @@ def plot_all_WRF_variables(time, domain, server):
                 'vmin': 5,
                 'vmax': 75,
                 'plottitle': '1 km AGL radar reflectivity '+time, 
-                'filename': save_dir_compare+'/Comparison/1kZh_Comparison_WSM6noNoah/1kRadarReflectivity_'+'Comparison_'+time+'.png' }    
+                'filename': save_dir_compare+'/Comparison/1kRadarReflectivity_'+'Comparison_'+time+'.png' }    
     
     fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
     counter=0
@@ -374,7 +374,7 @@ def plot_all_WRF_variables(time, domain, server):
                 'vmin': 300,
                 'vmax': 370,
                 'plottitle': 'Equiv. Potential Temp. 850 hPa '+time, 
-                'filename': save_dir_compare+'/Comparison/EquivPotentialTemp_Comparison_WSM6noNoah/EquivPotentialTemp_'+'Comparison_'+time+'.png' }    
+                'filename': save_dir_compare+'/Comparison/EquivPotentialTemp_'+'Comparison_'+time+'.png' }    
     
     fig, ax = plt.subplots(nrows=1, ncols=3, constrained_layout=True, figsize=(8*3,8)) 
     counter=0

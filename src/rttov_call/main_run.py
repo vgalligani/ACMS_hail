@@ -113,10 +113,12 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
     
         # Read file
-        outfolder = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input/'
-        outfile   = 'output_cs_tb_'+instrument
+        outfolder         = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input/'
+        outfile           = 'output_cs_tb_'+instrument
+
         WSM6_file = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+outfile)
         
+        #------        
         # Load all profiles
         A    = read_wrf(ncfile)
         toti = A['XLONG'].shape[0]
@@ -129,14 +131,18 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         rows, cols = A['XLONG'].shape  # Original dimensions
         tb_csrttov   = np.zeros( (nchan,rows,cols) );   tb_csrttov[:]=np.nan 
         tb1   = np.zeros( (nchan,rows,cols) );   tb1[:]=np.nan 
-    
+        
+        #--- allskytesting
+        outfile_as_test   = 'output_as_tb_'+instrument+'test'        
+        WSM6_file_as_test = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+outfile_as_test)
+        tb_asrttov_test   = np.zeros( (nchan,rows,cols) );   tb_asrttov_test[:]=np.nan 
+
         # Save some aux WRF data to dataframe
         #domainlons = [-65.5,-62]
         #domainlats = [-33.5,-31.3] 
-        qinttot = np.nansum( [qi_int.data, qc_int.data, qs_int.data, 
+        qinttot = np.nansum( [qi_int.data, qc_int.data, qs_int.data,  
                             qr_int.data, qg_int.data], axis=0 )
 
-    
         counter = 0
         rttov_counter = 0
         for i in range(A['XLONG'].shape[0]): 
@@ -163,12 +169,16 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
                     qinttot[i,j]     = np.nan
                     
                     #tb1[:,i,j] = np.nan
-                    tb_csrttov[:,i,j]  = np.nan
+                    tb_csrttov[:,i,j]       = np.nan
+                    tb_asrttov_test[:,i,j]  = np.nan
                     
                 else:
                     rttov_counter     = rttov_counter+1
                     q[:,i,j]          = A['h20'].data[:,i,j]
-                    tb_csrttov[:,i,j] = WSM6_file[rttov_counter-1,:]
+                    
+                    tb_csrttov[:,i,j]      = WSM6_file[rttov_counter-1,:]
+                    tb_asrttov_test[:,i,j] = WSM6_file_as_test[rttov_counter-1,:]
+                    
                     #tb1[:,i,j] = WSM6_atlas_file[rttov_counter-1,:]
         
         #----- SIMPLE PLOTS: make plots with integrated qx forzen y rain, y todos los canales
@@ -178,6 +188,8 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
             # Plot simulation (WRF resolution) and Observations (real resolution)
             ds = T2P.MHS_cs_sims(lons, lats, q, tb_csrttov, plotpath, server)
             ds.to_netcdf(processedFolder+'/'+outfile+'rttov_processed.nc', 'w')
+
+            das = T2P.MHS_as_sims(lons, lats, q, tb_asrttov_test, plotpath, server)
             
             #T2P.plot_simple_MHS_comparison(lons, lats, q, tb0, tb1, plotpath, 'mhs',server)
             
