@@ -11,7 +11,7 @@ def config_folders(server):
         # EXPS que analizo finalmente: 
         EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
                 'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP', 
-                'initcond_fromwrf_domain3_WSM6_d01P3_54', 'P3_3MOM_LF_domain_noNoah']
+                'initcond_fromwrf_domain3_WSM6_d01P3_54', 'P3_3MOM_LF_domain_noNoah','P3mp54_domain3_YSU_noNoahMP']
         #-----------------------------------------------------------------------
         
         # ---- WRFOUT files for all experiments 
@@ -39,6 +39,8 @@ def config_folders(server):
         folders['WSM6_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP_YSU/'
 
         folders['WSM6_domain3_YSU_noNoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_YSU_noNoahMP/'
+        folders['P3mp54_domain3_YSU_noNoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3mp54_domain3_YSUnoNoah/'
+
         #folders['0411_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/WSM6/'
         #folders['0411_P3check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/P3_mp54/'
         #folders['1312_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_13122018_datos/WSM6noNoah/'
