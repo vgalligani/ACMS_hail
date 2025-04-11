@@ -125,8 +125,8 @@ def get_q_ints6(ncfile):
     qg = mixr2massconc( np.squeeze(ncfile.variables["QGRAUP"][0,:,:,:] ), pressure, temp ) 
 
     qr_int = integrate.trapezoid(np.ma.array(qr, mask=np.isnan(qr)) , z_level, axis=0)
-    qs_int = integrate.trapezoid(np.ma.array(qr, mask=np.isnan(qs)) , z_level, axis=0)
-    qg_int = integrate.trapezoid(np.ma.array(qr, mask=np.isnan(qg)) , z_level, axis=0)
+    qs_int = integrate.trapezoid(np.ma.array(qs, mask=np.isnan(qs)) , z_level, axis=0)
+    qg_int = integrate.trapezoid(np.ma.array(qg, mask=np.isnan(qg)) , z_level, axis=0)
     qi_int = integrate.trapezoid(np.ma.array(qi, mask=np.isnan(qi)) , z_level, axis=0)
     qc_int = integrate.trapezoid(np.ma.array(qc, mask=np.isnan(qc)) , z_level, axis=0)
     

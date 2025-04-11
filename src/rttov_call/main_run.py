@@ -136,10 +136,17 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         tb_csrttov   = np.zeros( (nchan,rows,cols) );   tb_csrttov[:]=np.nan 
         tb1   = np.zeros( (nchan,rows,cols) );   tb1[:]=np.nan 
         
-        #--- allskytesting
+        #--- allskytesting (delfat test with official hydro_table. no psd nonsistency and
+        # overlap_param == cloud_overlap_2col_weighted and per_hydro_frac == false)
         outfile_as_test   = 'output_as_tb_'+instrument+'test'        
         WSM6_file_as_test = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+outfile_as_test)
         tb_asrttov_test   = np.zeros( (nchan,rows,cols) );   tb_asrttov_test[:]=np.nan 
+        #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
+        # default cloud overlap settings as above
+        outfile_as_exp1   = 'output_as_tb_'+instrument+'_eqmassWSM6_rsg_s10g2'        
+        WSM6_file_as_exp1 = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+outfile_as_exp1)
+        tb_asrttov_exp1   = np.zeros( (nchan,rows,cols) );   tb_asrttov_exp1[:]=np.nan         
+
 
         # Save some aux WRF data to dataframe
         #domainlons = [-65.5,-62]
@@ -175,6 +182,7 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
                     #tb1[:,i,j] = np.nan
                     tb_csrttov[:,i,j]       = np.nan
                     tb_asrttov_test[:,i,j]  = np.nan
+                    tb_asrttov_exp1[:,i,j]  = np.nan
                     
                 else:
                     rttov_counter     = rttov_counter+1
@@ -182,6 +190,7 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
                     
                     tb_csrttov[:,i,j]      = WSM6_file[rttov_counter-1,:]
                     tb_asrttov_test[:,i,j] = WSM6_file_as_test[rttov_counter-1,:]
+                    tb_asrttov_exp1[:,i,j] = WSM6_file_as_exp1[rttov_counter-1,:]
                     
                     #tb1[:,i,j] = WSM6_atlas_file[rttov_counter-1,:]
         
@@ -195,8 +204,12 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
             ds = T2P.MHS_cs_sims(lons, lats, q, tb_csrttov, plotpath, server)
             ds.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_clearsky.nc', 'w')
 
-            das = T2P.MHS_as_sims(lons, lats, tb_asrttov_test, plotpath, server)
+            das = T2P.MHS_as_sims(lons, lats, tb_asrttov_test, plotpath, server, '_test')
             das.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_test.nc', 'w')
+
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_exp1, plotpath, server, '_exp1')
+            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_exp1.nc', 'w')
+            
             
             #T2P.plot_simple_MHS_comparison(lons, lats, q, tb0, tb1, plotpath, 'mhs',server)
             
@@ -314,10 +327,24 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         # 1st Read nc files 
         processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
         
+        #------------------------------------------------------------------------------------------
         outfile   = 'output_tb_'+instrument
         WRFvars   = Dataset(processedFolder+'/'+'wrfdata_processed.nc')
-        d_asTest  = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_test.nc')
+        # clearsky
         d_cs      = Dataset(processedFolder+'/'+outfile+'rttov_processed_clearsky.nc')
+
+        #------------------------------------------------------------------------------------------    
+        # allskytesting (delfat test with official hydro_table. no psd nonsistency and
+        # overlap_param == cloud_overlap_2col_weighted and per_hydro_frac == false)
+        d_asTest  = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_test.nc')
+
+        #------------------------------------------------------------------------------------------
+        # allskytesting exp1        
+        # eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
+        # default cloud overlap settings as above
+        d_asExp1  = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_exp1.nc')
+
+        
         
         #- Clear-sky pixels: For simulations I use cloudmask and for observations? 
         cloudmask_1 = np.ma.masked_greater_equal(WRFvars['MHSfootprintmean_intTot'], 1) # footprint mean
@@ -686,8 +713,8 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #make_profs('MHS', '20:30', 6, 'cnrm')
-#make_plots('MHS', '20:30', 6, 'cnrm')
-make_stats('MHS', '20:30', 6, 'cnrm')
+make_plots('MHS', '20:30', 6, 'cnrm')
+#make_stats('MHS', '20:30', 6, 'cnrm')
 
 
 
