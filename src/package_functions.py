@@ -8,6 +8,24 @@ from pyart.core.transforms import antenna_to_cartesian
 import pyart
 import math 
 import wradlib as wrl
+import scipy.constants as spc
+
+
+#------------------------------------------------------------------------------  
+def pressure2height(p, T):
+    
+    R = spc.gas_constant / 28.9645e-3  
+    g =  spc.g
+    
+
+    layer_depth = np.diff(p)
+    rho = p / (R * T)
+    rho_layer = 0.5 * (rho[:-1] + rho[1:])
+
+    z = np.cumsum(-layer_depth / (rho_layer * g))
+
+    return np.hstack([0, z])
+
 
 #------------------------------------------------------------------------------  
 def adjust_fhc_colorbar_for_pyart(cb):

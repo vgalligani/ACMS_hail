@@ -51,6 +51,8 @@ import xarray as xr
 import sys
 import seaborn as sns 
 import matplotlib as mpl
+from package_functions import pressure2height
+
 sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
 
 plt.matplotlib.rc('font', family='serif', size = 12)
@@ -58,7 +60,14 @@ plt.rcParams['xtick.labelsize']=12
 plt.rcParams['ytick.labelsize']=12  
 
 
-
+def eqmass_exp(folders, outfoldereq, mp_physics, instrument, experiment):
+    
+        #--- eqmassWSM6_rsg_s11g2 
+        outfile_as = 'output_as_tb_'+instrument+experiment        
+        file_as    = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfoldereq+experiment[12:]+'/'+outfile_as)
+        
+        return file_as
+        
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 def main(makeProfs, instrument, HHtime, mp_version, server): 
@@ -115,37 +124,85 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
 
         flag_name = 'rttov14_'+instrument+'_'+mp_physics+'_2018-11-10_'+HHtime
     
+       
         # Processed data:
         processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
     
-        # Read file
+        # RTTOVout folders
         outfolder         = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input/'
-        WSM6_file = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+'output_cs_tb_'+instrument)
+        outfoldereq       = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input__eqmassWSM6_'
+
+        # Read clear-sky file file
+        WSM6_file         = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+'output_cs_tb_'+instrument)
         
         #------        
         # Load all profiles
         A    = read_wrf(ncfile)
         toti = A['XLONG'].shape[0]
-        totj = A['XLONG'].shape[1]
-        
-        lats = np.zeros(A['XLONG'].shape); lats[:]=np.nan
-        lons = np.zeros(A['XLONG'].shape); lons[:]=np.nan
-        q    = np.zeros(A['h20'].shape);      q[:]=np.nan
-        qinttot = np.zeros(A['XLONG'].shape);   qinttot[:]=np.nan  
-        rows, cols = A['XLONG'].shape  # Original dimensions
+        totj = A['XLONG'].shape[1]       
+        lats         = np.zeros(A['XLONG'].shape); lats[:]=np.nan
+        lons         = np.zeros(A['XLONG'].shape); lons[:]=np.nan
+        q            = np.zeros(A['h20'].shape);      q[:]=np.nan
+        qinttot      = np.zeros(A['XLONG'].shape);   qinttot[:]=np.nan  
+        rows, cols   = A['XLONG'].shape  # Original dimensions
+        zalt         = np.zeros(A['pressure'].shape);      zalt[:]=np.nan
+
+        #---------------------------------------------------------------------
         tb_csrttov   = np.zeros( (nchan,rows,cols) );   tb_csrttov[:]=np.nan 
-        tb1   = np.zeros( (nchan,rows,cols) );   tb1[:]=np.nan 
-        
+        tb1          = np.zeros( (nchan,rows,cols) );   tb1[:]=np.nan 
+         
+        #--------
+        # Read scatt rttov outputs
         #--- allskytesting (delfat test with official hydro_table. no psd nonsistency and
         # overlap_param == cloud_overlap_2col_weighted and per_hydro_frac == false)
         outfile_as_test   = 'output_as_tb_'+instrument+'test'        
-        WSM6_file_as_test = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+outfile_as_test)
+        outfoldetest      = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input_test/'
+        WSM6_file_as_test = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfoldetest+outfile_as_test)
         tb_asrttov_test   = np.zeros( (nchan,rows,cols) );   tb_asrttov_test[:]=np.nan 
+
         #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
         # default cloud overlap settings as above
-        outfile_as_exp1   = 'output_as_tb_'+instrument+'_eqmassWSM6_rsg_s10g2'        
-        WSM6_file_as_exp1 = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfolder+outfile_as_exp1)
-        tb_asrttov_exp1   = np.zeros( (nchan,rows,cols) );   tb_asrttov_exp1[:]=np.nan         
+        WSM6_file_as_rsg_s1g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s1g2')
+        WSM6_file_as_rsg_s2g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s2g2')
+        WSM6_file_as_rsg_s3g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s3g2')
+        WSM6_file_as_rsg_s4g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s4g2')
+        WSM6_file_as_rsg_s5g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s5g2')
+        WSM6_file_as_rsg_s6g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s6g2')
+        WSM6_file_as_rsg_s7g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s7g2')
+        WSM6_file_as_rsg_s8g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s8g2')
+        WSM6_file_as_rsg_s9g2  = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s9g2')
+        WSM6_file_as_rsg_s10g2 = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s10g2')
+        WSM6_file_as_rsg_s11g2 = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s11g2')
+        WSM6_file_as_rsg_s12g2 = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s12g2')
+        WSM6_file_as_rsg_s13g2 = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s13g2')
+        WSM6_file_as_rsg_s14g2 = eqmass_exp(folders, outfoldereq, mp_physics, instrument, '_eqmassWSM6_rsg_s14g2')
+
+        tb_asrttov_rsg = np.zeros( (14, nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan  
+        
+        #  output folder for scattering: WRF-WSM6_20181110_20:30_MHS_atlas_satzen_input__eqmassWSM6_rsg_s3g2
+        #outfile_as_rsg_s10g2   = 'output_as_tb_'+instrument+'_eqmassWSM6_rsg_s10g2'        
+        #WSM6_file_as_rsg_s10g2 = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfoldereq+'rsg_s10g2/'+outfile_as_rsg_s10g2)
+        #tb_asrttov_rsg_s10g2   = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg_s10g2[:]=np.nan               
+        
+        #--- eqmassWSM6_rsg_s11g2 
+        #outfile_as_rsg_s11g2   = 'output_as_tb_'+instrument+'_eqmassWSM6_rsg_s11g2'        
+        #WSM6_file_as_rsg_s11g2 = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfoldereq+'rsg_s11g2/'+outfile_as_rsg_s11g2)
+        #tb_asrttov_rsg_s11g2   = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg_s11g2[:]=np.nan     
+
+        #--- eqmassWSM6_rsg_s11g2 
+        #outfile_as_rsg_s3g2   = 'output_as_tb_'+instrument+'_eqmassWSM6_rsg_s3g2'        
+        #WSM6_file_as_rsg_s3g2 = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfoldereq+'rsg_s3g2/'+outfile_as_rsg_s3g2)
+        #tb_asrttov_rsg_s3g2   = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg_s3g2[:]=np.nan     
+
+        #--- eqmassWSM6_rsg_s11g2 
+        #outfile_as_rsg_s7g2   = 'output_as_tb_'+instrument+'_eqmassWSM6_rsg_s7g2'        
+        #WSM6_file_as_rsg_s7g2 = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfoldereq+'rsg_s7g2/'+outfile_as_rsg_s7g2)
+        #tb_asrttov_rsg_s7g2   = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg_s7g2[:]=np.nan     
+ 
+        #--- eqmassWSM6_rsg_s11g2 
+        #outfile_as_rsg_s8g2   = 'output_as_tb_'+instrument+'_eqmassWSM6_rsg_s8g2'        
+        #WSM6_file_as_rsg_s8g2 = np.genfromtxt(folders['read_out_dir']+mp_physics+'/'+outfoldereq+'rsg_s8g2/'+outfile_as_rsg_s8g2)
+        #tb_asrttov_rsg_s8g2   = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg_s8g2[:]=np.nan  
 
 
         # Save some aux WRF data to dataframe
@@ -178,20 +235,37 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
                     qc.data[:,i,j]   = np.nan
                     qg.data[:,i,j]   = np.nan
                     qinttot[i,j]     = np.nan
+                    zalt[:,i,j]      = np.nan
                     
                     #tb1[:,i,j] = np.nan
                     tb_csrttov[:,i,j]       = np.nan
                     tb_asrttov_test[:,i,j]  = np.nan
-                    tb_asrttov_exp1[:,i,j]  = np.nan
+                    tb_asrttov_rsg[:,:,i,j] = np.nan
+
                     
                 else:
                     rttov_counter     = rttov_counter+1
                     q[:,i,j]          = A['h20'].data[:,i,j]
+                    zalt[:,i,j]       = pressure2height(A['pressure'][:,i,j], A['T'][:,i,j])
                     
                     tb_csrttov[:,i,j]      = WSM6_file[rttov_counter-1,:]
                     tb_asrttov_test[:,i,j] = WSM6_file_as_test[rttov_counter-1,:]
-                    tb_asrttov_exp1[:,i,j] = WSM6_file_as_exp1[rttov_counter-1,:]
                     
+                    tb_asrttov_rsg[0,:,i,j]  = WSM6_file_as_rsg_s1g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[1,:,i,j]  = WSM6_file_as_rsg_s2g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[2,:,i,j]  = WSM6_file_as_rsg_s3g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[3,:,i,j]  = WSM6_file_as_rsg_s4g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[4,:,i,j]  = WSM6_file_as_rsg_s5g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[5,:,i,j]  = WSM6_file_as_rsg_s6g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[6,:,i,j]  = WSM6_file_as_rsg_s7g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[7,:,i,j]  = WSM6_file_as_rsg_s8g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[8,:,i,j]  = WSM6_file_as_rsg_s9g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[9,:,i,j]  = WSM6_file_as_rsg_s10g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[10,:,i,j] = WSM6_file_as_rsg_s11g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[11,:,i,j] = WSM6_file_as_rsg_s12g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[12,:,i,j] = WSM6_file_as_rsg_s13g2[rttov_counter-1,:]
+                    tb_asrttov_rsg[13,:,i,j] = WSM6_file_as_rsg_s14g2[rttov_counter-1,:]
+
                     #tb1[:,i,j] = WSM6_atlas_file[rttov_counter-1,:]
         
         #----- SIMPLE PLOTS: make plots with integrated qx forzen y rain, y todos los canales
@@ -207,10 +281,23 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
             das = T2P.MHS_as_sims(lons, lats, tb_asrttov_test, plotpath, server, '_test')
             das.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_test.nc', 'w')
 
-            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_exp1, plotpath, server, '_exp1')
-            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_exp1.nc', 'w')
-            
-            
+            for issp in range(14):
+                das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[issp,:,:,:], plotpath, server, '_rsg_s'+str(issp+1)+'g2')
+                das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(issp+1)+'g2.nc', 'w')
+                das1.close()
+
+            # das2 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s11g2, plotpath, server, '_rsg_s11g2')
+            # das2.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s11g2.nc', 'w')
+
+            # das3 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s3g2, plotpath, server, '_rsg_s3g2')
+            # das3.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s3g2.nc', 'w')
+
+            # das4 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s7g2, plotpath, server, '_rsg_s7g2')
+            # das4.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s7g2.nc', 'w')
+
+            # das5 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s8g2, plotpath, server, '_rsg_s8g2')
+            # das5.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s8g2.nc', 'w')
+
             #T2P.plot_simple_MHS_comparison(lons, lats, q, tb0, tb1, plotpath, 'mhs',server)
             
         if 'AMSR' in instrument: 
@@ -258,6 +345,7 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         dwrf =  xr.Dataset({
              "wrf_lat":    (["lat","lon"], lats), 
              "wrf_lon":    (["lat","lon"], lons),
+             "wrf_zalt":   (["var","lat","lon"], zalt),
              "WRF_qr":     (["var","lat","lon"],  qr.data),
              "WRF_qs":     (["var","lat","lon"],  qs.data),   
              "WRF_qg":     (["var","lat","lon"],  qg.data),   
@@ -342,8 +430,14 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         # allskytesting exp1        
         # eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
         # default cloud overlap settings as above
-        d_asExp1  = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_exp1.nc')
-
+        d_asExp3   = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s3g2.nc')
+        d_asExp7   = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s7g2.nc')
+        d_asExp8   = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s8g2.nc')
+        d_asExp10  = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s10g2.nc')
+        d_asExp11  = Dataset(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s11g2.nc')
+        
+        breakpoint()
+        plt.pcolormesh(d_asExp3['wrf_lon'],d_asExp3['wrf_lat'], d_asExp3['rttov_as']) 
         
         
         #- Clear-sky pixels: For simulations I use cloudmask and for observations? 
