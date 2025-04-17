@@ -897,8 +897,7 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #main_makeProfs('MHS', '20:30', 6, 'cnrm')
 #main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
-for 
-main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0, lius=i, liug=j)
+main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0)
 
                
 #make_plots('MHS', '20:30', 6, 'yakaira')
