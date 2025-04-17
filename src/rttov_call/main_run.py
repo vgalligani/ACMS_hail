@@ -121,6 +121,9 @@ def main_makeProfs(instrument, HHtime, mp_version, server):
 def main_Process_cs_andWRF(instrument, HHtime, mp_version, server): 
 
     plotpath, folders = config_folders(server)
+
+    if (mp_version == 6):
+      mp_physics = 'WRF-WSM6'
     
     # Select server and folder locations
     #--------------------------------------------------------------------------
@@ -157,6 +160,8 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
         [qr, qs, qi, qc, qg, qr_int, qs_int, qi_int, qc_int, qg_int] = funs.get_q_ints6(ncdata)
         int_titles = ['qr','qc','qi','qs','qg']
 
+    
+    # Select server and folder locations
     flag_name = 'rttov14_'+instrument+'_'+mp_physics+'_2018-11-10_'+HHtime
 
     # RTTOVout folders
@@ -221,8 +226,8 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
                 #tb1[:,i,j] = np.nan
                 tb_csrttov[:,i,j]       = np.nan
                 tb_asrttov_test[:,i,j]  = np.nan
-                tb_asrttov_eqMass_rsg[:,:,:,i,j] = np.nan
-                tb_asrttov_rsg[:,:,:,i,j] = np.nan
+                #tb_asrttov_eqMass_rsg[:,:,:,i,j] = np.nan
+                #tb_asrttov_rsg[:,:,:,i,j] = np.nan
                 
             else:
                 rttov_counter     = rttov_counter+1
@@ -281,7 +286,7 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
     # 3) GAUSSIAN ?
     #-------------------------------------------------------------------------                                              
     WRF_intqtot_gaussian = T2P.overGaussian(lats, lons, ds, qinttot)
-    WRF_intqr_gaussian   = T2P.overGaussian(lats, lons, ds, qr_int.dataeqMass_)
+    WRF_intqr_gaussian   = T2P.overGaussian(lats, lons, ds, qr_int.data)
     WRF_intqs_gaussian   = T2P.overGaussian(lats, lons, ds, qs_int.data)
     WRF_intqg_gaussian   = T2P.overGaussian(lats, lons, ds, qg_int.data)
     WRF_intqi_gaussian   = T2P.overGaussian(lats, lons, ds, qi_int.data)
@@ -357,7 +362,10 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
         
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def main_Process_Expliu(instrument, HHtime, mp_version, server): 
+def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do): 
+
+    if (mp_version == 6):
+      mp_physics = 'WRF-WSM6'
 
     plotpath, folders = config_folders(server)
     
@@ -386,7 +394,7 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server):
     import package_functions as funs
     
     #--------------------------------------------
-    # Filter monotonic pressure and h2o > 0.1E-10
+    # Filter monotonic 	pressure and h2o > 0.1E-10
     skipProfs = filter_pixels_monotonic(mp_version, HHtime, server)
 
     if mp_version == 6:
@@ -408,27 +416,28 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server):
     totj = A['XLONG'].shape[1]       
     lats         = np.zeros(A['XLONG'].shape); lats[:]=np.nan
     lons         = np.zeros(A['XLONG'].shape); lons[:]=np.nan
-     
-    #--------
+    rows, cols = A['XLONG'].shape
+ 
     # Read scatt rttov outputs
     #--- allskytesting (delfat test with official hydro_table. no psd nonsistency and
     # overlap_param == cloud_overlap_2col_weighted and per_hydro_frac == false)
     tb_asrttov_eqMass_rsg   = np.zeros( (11,11,nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
     tb_asrttov_rsg          = np.zeros( (11,11,nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
-
-    #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
-    # read for all liu - liu combinations w/ snow and grau
-    # default cloud overlap settings as above (+renormalization)
-    exp_asrttov_eqmass_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics, 
+  
+    if (eqMass_do == 1): 
+    	#--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
+    	# read for all liu - liu combinations w/ snow and grau
+    	# default cloud overlap settings as above (+renormalization)
+    	exp_asrttov_eqmass_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics, 
 		HHtime, instrument, '_eqMass_WSM6_rsg', nchan)
-    gc.collect()
-	
-    #--- WSM6_rsg_s10g2: Dmax PSD consistency with WRF and 
-    # read for all liu - liu combinations w/ snow and grau
-    # default cloud overlap settings as above (re-normalization)
-    exp_asrttov_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics,
+    	gc.collect()
+    else: 
+    	#--- WSM6_rsg_s10g2: Dmax PSD consistency with WRF and 
+    	# read for all liu - liu combinations w/ snow and grau
+    	# default cloud overlap settings as above (re-normalization)
+    	exp_asrttov_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics,
             HHtime, instrument, '_WSM6_rsg', nchan)
-    gc.collect()
+    	gc.collect()
 
     counter = 0
     rttov_counter = 0
@@ -446,8 +455,10 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server):
                 rttov_counter = rttov_counter+1
                 for ilius in range(11):
                     for iliug in range(11):
-                        tb_asrttov_eqMass_rsg[ilius,iliug,:,i,j] = exp_asrttov_eqmass_rsgliu[ilius, iliug, rttov_counter-1,:]
-                        tb_asrttov_rsg[ilius,iliug,:,i,j]        = exp_asrttov_rsgliu[ilius, iliug, rttov_counter-1,:]
+			if (eqMass_do==1):
+                        	tb_asrttov_eqMass_rsg[ilius,iliug,:,i,j] = exp_asrttov_eqmass_rsgliu[ilius, iliug, rttov_counter-1,:]
+			else: 
+                        	tb_asrttov_rsg[ilius,iliug,:,i,j]        = exp_asrttov_rsgliu[ilius, iliug, rttov_counter-1,:]
     
                     
     if 'MHS' in instrument: 
@@ -455,13 +466,14 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server):
         outfile           = 'output_tb_'+instrument
         for ilius in range(11):
             for iliug in range(11):
-                das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
-                das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
-                das1.close()
-
-                das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
-                das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
-                das1.close()
+		if (eqMass_do == 0):
+                	das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
+                	das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
+                	das1.close()
+		else: 
+                	das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
+                	das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
+                	das1.close()
 
         # das2 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s11g2, plotpath, server, '_rsg_s11g2')
         # das2.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s11g2.nc', 'w')
@@ -899,8 +911,8 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #main_makeProfs('MHS', '20:30', 6, 'cnrm')
-main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
-main_Process_Expliu('MHS', '20:30', 6, 'yakaira')
+#main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
+main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0)
 
                
 #make_plots('MHS', '20:30', 6, 'yakaira')
