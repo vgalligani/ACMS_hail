@@ -80,6 +80,22 @@ def eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, experiment,
  
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
+def eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, experiment, nchan, i, j): #where exp='__eqMass_WSM6_rsg'
+	
+	# main output folder
+    main_folder = folders['read_out_dir']+mp_physics+'/'
+    subfolder = mp_physics+'_20181110_'+HHtime+'_'+instrument+'_atlas_satzen_input_'
+        
+    Expname   = experiment+'_sliu'+str(i)+'_gliu'+str(j)
+    file_folder = main_folder + subfolder+Expname+'/'
+    file_       = 'output_as_tb_'+instrument+Expname
+    tb =  np.genfromtxt(file_folder+file_)
+
+    return tb       
+ 
+    
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 def main_makeProfs(instrument, HHtime, mp_version, server): 
 
     plotpath, folders = config_folders(server)
@@ -362,7 +378,7 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
         
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do, isnow, igrau): 
+def main_Process_Expliu(instrument, HHtime, mp_version, server, skipProfs, eqMass_do, isnow, igrau): 
 
     if (mp_version == 6):
       mp_physics = 'WRF-WSM6'
@@ -393,10 +409,6 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do, isnow
     from package_functions import pressure2height
     import package_functions as funs
     
-    #--------------------------------------------
-    # Filter monotonic 	pressure and h2o > 0.1E-10
-    skipProfs = filter_pixels_monotonic(mp_version, HHtime, server)
-
     if mp_version == 6:
         mp_physics = 'WRF-WSM6'
         ncfile     = upfolder+'WRFOUT/WSM6_domain3_NoahMP/wrfout_d02_2018-11-10_'+HHtime+':00'
@@ -422,13 +434,15 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do, isnow
         	#--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
         # read for all liu - liu combinations w/ snow and grau
         # default cloud overlap settings as above (+renormalization)
-        exp_asrttov_eqmass_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg', nchan)
+        #exp_asrttov_eqmass_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg', nchan)
+        exp_asrttov_eqmass_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg', nchan, isnow, igrau)
         gc.collect()
     else: 
         	#--- WSM6_rsg_s10g2: Dmax PSD consistency with WRF and 
         # read for all liu - liu combinations w/ snow and grau
         # default cloud overlap settings as above (re-normalization)
-        exp_asrttov_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics,HHtime, instrument, '_WSM6_rsg', nchan)
+        #exp_asrttov_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics,HHtime, instrument, '_WSM6_rsg', nchan)
+        exp_asrttov_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_rsg', nchan, isnow, igrau)
         gc.collect()
 
     outfile = 'output_tb_'+instrument
@@ -437,6 +451,8 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do, isnow
 
     counter = 0
     rttov_counter = 0
+    
+    print('ok')
 
     for i in range(A['XLONG'].shape[0]): 
         for j in range(A['XLONG'].shape[1]): 
@@ -453,14 +469,20 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do, isnow
             else:
                 rttov_counter = rttov_counter+1
                 if (eqMass_do==1):
-                    tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[isnow, igrau, rttov_counter-1,:]
+                    #tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[isnow, igrau, rttov_counter-1,:]
+                    tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[rttov_counter-1,:]
+
                     gc.collect()
                 else: 
-                    tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[isnow, igrau, rttov_counter-1,:]
+                    #tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[isnow, igrau, rttov_counter-1,:]
+                    tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
                     gc.collect()
+                    
+    print('llego hasta aca! ')
 
     # Pre-process like this if MHS                
     if 'MHS' in instrument: 
+        
 
         if (eqMass_do == 0): 
             das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau))
@@ -895,9 +917,13 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #main_makeProfs('MHS', '20:30', 6, 'cnrm')
 #main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
-for isnow in range(11):
-    for  igrau in range(11):
-        main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0, isnow=isnow, igrau=igrau)
+
+#--------------------------------------------
+# Filter monotonic 	pressure and h2o > 0.1E-10
+skipProfs = filter_pixels_monotonic(mp_version, HHtime, server)   
+for isnow in range(1):
+    for  igrau in range(1):
+        main_Process_Expliu('MHS', '20:30', 6, 'cnrm', skipProfs, eqMass_do=0, isnow=isnow, igrau=igrau)
         print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
                
 #make_plots('MHS', '20:30', 6, 'yakaira')
