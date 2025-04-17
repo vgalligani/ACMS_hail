@@ -455,10 +455,10 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do):
                 rttov_counter = rttov_counter+1
                 for ilius in range(11):
                     for iliug in range(11):
-			if (eqMass_do==1):
-                        	tb_asrttov_eqMass_rsg[ilius,iliug,:,i,j] = exp_asrttov_eqmass_rsgliu[ilius, iliug, rttov_counter-1,:]
-			else: 
-                        	tb_asrttov_rsg[ilius,iliug,:,i,j]        = exp_asrttov_rsgliu[ilius, iliug, rttov_counter-1,:]
+                        if (eqMass_do==1):
+                            tb_asrttov_eqMass_rsg[ilius,iliug,:,i,j] = exp_asrttov_eqmass_rsgliu[ilius, iliug, rttov_counter-1,:]
+                        else: 
+                            tb_asrttov_rsg[ilius,iliug,:,i,j]        = exp_asrttov_rsgliu[ilius, iliug, rttov_counter-1,:]
     
                     
     if 'MHS' in instrument: 
@@ -466,14 +466,14 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do):
         outfile           = 'output_tb_'+instrument
         for ilius in range(11):
             for iliug in range(11):
-		if (eqMass_do == 0):
-                	das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
-                	das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
-                	das1.close()
-		else: 
-                	das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
-                	das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
-                	das1.close()
+                if (eqMass_do == 0): 
+                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
+                    das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
+                    das1.close()
+                else: 
+                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
+                    das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
+                    das1.close()
 
         # das2 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s11g2, plotpath, server, '_rsg_s11g2')
         # das2.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s11g2.nc', 'w')
@@ -489,9 +489,9 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do):
 
         #T2P.plot_simple_MHS_comparison(lons, lats, q, tb0, tb1, plotpath, 'mhs',server)
         
-    if 'AMSR' in instrument: 
-        T2P.plot_simple_AMSR2_TEST(lons, lats, q, tb_csrttov, tb1, plotpath)
-        T2P.plot_simple_AMSR2_comparison(lons, lats, q, tb_csrttov, tb1, plotpath, 'amsr-2')
+    #if 'AMSR' in instrument: 
+    #    T2P.plot_simple_AMSR2_TEST(lons, lats, q, tb_csrttov, tb1, plotpath)
+    #    T2P.plot_simple_AMSR2_comparison(lons, lats, q, tb_csrttov, tb1, plotpath, 'amsr-2')
      
     return
 
