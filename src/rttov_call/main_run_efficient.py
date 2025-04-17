@@ -429,6 +429,7 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, skipProfs, eqMas
     lats         = np.zeros(A['XLONG'].shape); lats[:]=np.nan
     lons         = np.zeros(A['XLONG'].shape); lons[:]=np.nan
     rows, cols = A['XLONG'].shape
+    shape_ = A['XLONG'].shape
  
     if (eqMass_do == 1): 
         	#--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
@@ -450,41 +451,37 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, skipProfs, eqMas
     counter = 0
     rttov_counter = 0
     
-    print('ok')
-
-    for i in range(A['XLONG'].shape[0]): 
-        for j in range(A['XLONG'].shape[1]): 
-            counter = counter+1
-            lats[i,j] = A['XLAT'].data[i,j]
-            lons[i,j] = A['XLONG'].data[i,j]
- 
-            if counter in skipProfs:
-                tb_asrttov_eqMass_rsg[:,i,j] = np.nan
-                tb_asrttov_rsg[:,i,j] = np.nan
-                
-            else:
-                rttov_counter = rttov_counter+1
-                if (eqMass_do==1):
-                    #tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[isnow, igrau, rttov_counter-1,:]
-                    tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[rttov_counter-1,:]
-                else: 
-                    #tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[isnow, igrau, rttov_counter-1,:]
-                    tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+    for idx, (i,j) in enumerate(np.ndindex(shape_)):
+        lats[i,j] = A['XLAT'].data[i,j]
+        lons[i,j] = A['XLONG'].data[i,j]
+        
+        if idx in skipProfs:
+            tb_asrttov_eqMass_rsg[:,i,j] = np.nan
+            tb_asrttov_rsg[:,i,j] = np.nan
+        
+        else:
+            if (eqMass_do==1):
+                tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[rttov_counter-1,:]
+            else: 
+                tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+            rttov_counter=rttov_counter+1
                     
-    print('llego hasta aca! ')
-
     # Pre-process like this if MHS                
     if 'MHS' in instrument: 
+        
+
         if (eqMass_do == 0): 
             das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau))
             das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(isnow)+'g'+str(igrau)+'.nc', 'w')
             das1.close()
+            gc.collect()
             del tb_asrttov_rsg
             
         else: 
             das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau))
             das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(isnow)+'g'+str(igrau)+'.nc', 'w')
             das1.close()
+            gc.collect()
             del tb_asrttov_eqMass_rsg
 
     return
@@ -908,14 +905,14 @@ def make_stats(instrument, HHtime, mp_version, server):
 #main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
 
 #--------------------------------------------
-# Filter monotonic 	pressure and h2o > 0.1E-10
-skipProfs = filter_pixels_monotonic(6, '20:30', 'cnrm')   
-for isnow in range(1):
-    for  igrau in range(1):
-        main_Process_Expliu('MHS', '20:30', 6, 'cnrm', skipProfs, eqMass_do=0, isnow=isnow, igrau=igrau)
+server = 'yakaira'
+skipProfs = filter_pixels_monotonic(6, '20:30', server)   
+for isnow in range(11):
+    for  igrau in range(11):
+        main_Process_Expliu('MHS', '20:30', 6, server, skipProfs, eqMass_do=0, isnow=isnow, igrau=igrau)
         print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
-        gc.collect()
-               
+        gc.collect() 
+        
 #make_plots('MHS', '20:30', 6, 'yakaira')
 #make_stats('MHS', '20:30', 6, 'cnrm')
 

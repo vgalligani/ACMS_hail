@@ -629,8 +629,8 @@ def run_main_compare(mp_version, instrument, experiments):
 mp_version = 6
 instrument = 'MHS'
 run_main(mp_version, instrument, 's9g2')
-run_main(mp_version, instrument, 's10g2')
-run_main(mp_version, instrument, 's14g2')
-run_main_compare(mp_version, instrument, ['s9g2','s10g2','s14g2'])
+# run_main(mp_version, instrument, 's10g2')
+# run_main(mp_version, instrument, 's14g2')
+# run_main_compare(mp_version, instrument, ['s9g2','s10g2','s14g2'])
 
  
