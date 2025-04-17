@@ -362,7 +362,7 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
         
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do): 
+def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do, isnow, igrau): 
 
     if (mp_version == 6):
       mp_physics = 'WRF-WSM6'
@@ -432,51 +432,49 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do):
         gc.collect()
 
     outfile = 'output_tb_'+instrument
+    tb_asrttov_eqMass_rsg   = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
+    tb_asrttov_rsg          = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
 
-    for isnow in range(11):
-        for  igrau in range(11):
+    counter = 0
+    rttov_counter = 0
 
-            tb_asrttov_eqMass_rsg   = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
-            tb_asrttov_rsg          = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
-
-            counter = 0
-            rttov_counter = 0
-
-            for i in range(A['XLONG'].shape[0]): 
-                for j in range(A['XLONG'].shape[1]): 
-                    counter = counter+1
-                    lats[i,j] = A['XLAT'].data[i,j]
-                    lons[i,j] = A['XLONG'].data[i,j]
-         
-                    if counter in skipProfs:
-                        tb_asrttov_eqMass_rsg[:,i,j] = np.nan
-                        tb_asrttov_rsg[:,i,j] = np.nan
-                        
-                    else:
-                        rttov_counter = rttov_counter+1
-                        if (eqMass_do==1):
-                            tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[isnow, igrau, rttov_counter-1,:]
-                            gc.collect()
-                        else: 
-                            tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[isnow, igrau, rttov_counter-1,:]
-                            gc.collect()
-
-            # Pre-process like this if MHS                
-            if 'MHS' in instrument: 
-
-                if (eqMass_do == 0): 
-                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
-                    das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
-                    das1.close()
+    for i in range(A['XLONG'].shape[0]): 
+        for j in range(A['XLONG'].shape[1]): 
+            counter = counter+1
+            lats[i,j] = A['XLAT'].data[i,j]
+            lons[i,j] = A['XLONG'].data[i,j]
+ 
+            if counter in skipProfs:
+                tb_asrttov_eqMass_rsg[:,i,j] = np.nan
+                tb_asrttov_rsg[:,i,j] = np.nan
+                lats[i,j] = np.nan
+                lons[i,j] = np.nan
+                
+            else:
+                rttov_counter = rttov_counter+1
+                if (eqMass_do==1):
+                    tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[isnow, igrau, rttov_counter-1,:]
                     gc.collect()
-                    del tb_asrttov_rsg
-                    
                 else: 
-                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
-                    das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
-                    das1.close()
+                    tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[isnow, igrau, rttov_counter-1,:]
                     gc.collect()
-                    del tb_asrttov_eqMass_rsg
+
+    # Pre-process like this if MHS                
+    if 'MHS' in instrument: 
+
+        if (eqMass_do == 0): 
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau))
+            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(isnow)+'g'+str(igrau)+'.nc', 'w')
+            das1.close()
+            gc.collect()
+            del tb_asrttov_rsg
+            
+        else: 
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau))
+            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(isnow)+'g'+str(igrau)+'.nc', 'w')
+            das1.close()
+            gc.collect()
+            del tb_asrttov_eqMass_rsg
 
     return
 
@@ -897,8 +895,10 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #main_makeProfs('MHS', '20:30', 6, 'cnrm')
 #main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
-main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0)
-
+for isnow in range(11):
+    for  igrau in range(11):
+        main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0, isnow=isnow, igrau=igrau)
+        print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
                
 #make_plots('MHS', '20:30', 6, 'yakaira')
 #make_stats('MHS', '20:30', 6, 'cnrm')
