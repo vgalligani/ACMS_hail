@@ -418,81 +418,66 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, eqMass_do):
     lons         = np.zeros(A['XLONG'].shape); lons[:]=np.nan
     rows, cols = A['XLONG'].shape
  
-    # Read scatt rttov outputs
-    #--- allskytesting (delfat test with official hydro_table. no psd nonsistency and
-    # overlap_param == cloud_overlap_2col_weighted and per_hydro_frac == false)
-    tb_asrttov_eqMass_rsg   = np.zeros( (11,11,nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
-    tb_asrttov_rsg          = np.zeros( (11,11,nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
-  
     if (eqMass_do == 1): 
-    	#--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
-    	# read for all liu - liu combinations w/ snow and grau
-    	# default cloud overlap settings as above (+renormalization)
-    	exp_asrttov_eqmass_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics, 
-		HHtime, instrument, '_eqMass_WSM6_rsg', nchan)
-    	gc.collect()
+        	#--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
+        # read for all liu - liu combinations w/ snow and grau
+        # default cloud overlap settings as above (+renormalization)
+        exp_asrttov_eqmass_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg', nchan)
+        gc.collect()
     else: 
-    	#--- WSM6_rsg_s10g2: Dmax PSD consistency with WRF and 
-    	# read for all liu - liu combinations w/ snow and grau
-    	# default cloud overlap settings as above (re-normalization)
-    	exp_asrttov_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics,
-            HHtime, instrument, '_WSM6_rsg', nchan)
-    	gc.collect()
+        	#--- WSM6_rsg_s10g2: Dmax PSD consistency with WRF and 
+        # read for all liu - liu combinations w/ snow and grau
+        # default cloud overlap settings as above (re-normalization)
+        exp_asrttov_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics,HHtime, instrument, '_WSM6_rsg', nchan)
+        gc.collect()
 
-    counter = 0
-    rttov_counter = 0
-    for i in range(A['XLONG'].shape[0]): 
-        for j in range(A['XLONG'].shape[1]): 
-            counter = counter+1
-            lats[i,j] = A['XLAT'].data[i,j]
-            lons[i,j] = A['XLONG'].data[i,j]
-                
-            if counter in skipProfs:
-                tb_asrttov_eqMass_rsg[:,:,:,i,j] = np.nan
-                tb_asrttov_rsg[:,:,:,i,j] = np.nan
-                
-            else:
-                rttov_counter = rttov_counter+1
-                for ilius in range(11):
-                    for iliug in range(11):
+    outfile = 'output_tb_'+instrument
+
+    for isnow in range(11):
+        for  igrau in range(11):
+
+            tb_asrttov_eqMass_rsg   = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
+            tb_asrttov_rsg          = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
+
+            counter = 0
+            rttov_counter = 0
+
+            for i in range(A['XLONG'].shape[0]): 
+                for j in range(A['XLONG'].shape[1]): 
+                    counter = counter+1
+                    lats[i,j] = A['XLAT'].data[i,j]
+                    lons[i,j] = A['XLONG'].data[i,j]
+         
+                    if counter in skipProfs:
+                        tb_asrttov_eqMass_rsg[:,i,j] = np.nan
+                        tb_asrttov_rsg[:,i,j] = np.nan
+                        
+                    else:
+                        rttov_counter = rttov_counter+1
                         if (eqMass_do==1):
-                            tb_asrttov_eqMass_rsg[ilius,iliug,:,i,j] = exp_asrttov_eqmass_rsgliu[ilius, iliug, rttov_counter-1,:]
+                            tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[isnow, igrau, rttov_counter-1,:]
+                            gc.collect()
                         else: 
-                            tb_asrttov_rsg[ilius,iliug,:,i,j]        = exp_asrttov_rsgliu[ilius, iliug, rttov_counter-1,:]
-    
-                    
-    if 'MHS' in instrument: 
-        
-        outfile           = 'output_tb_'+instrument
-        for ilius in range(11):
-            for iliug in range(11):
+                            tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[isnow, igrau, rttov_counter-1,:]
+                            gc.collect()
+
+            # Pre-process like this if MHS                
+            if 'MHS' in instrument: 
+
                 if (eqMass_do == 0): 
-                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
+                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
                     das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
                     das1.close()
+                    gc.collect()
+                    del tb_asrttov_rsg
+                    
                 else: 
-                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
+                    das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
                     das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
                     das1.close()
+                    gc.collect()
+                    del tb_asrttov_eqMass_rsg
 
-        # das2 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s11g2, plotpath, server, '_rsg_s11g2')
-        # das2.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s11g2.nc', 'w')
-
-        # das3 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s3g2, plotpath, server, '_rsg_s3g2')
-        # das3.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s3g2.nc', 'w')
-
-        # das4 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s7g2, plotpath, server, '_rsg_s7g2')
-        # das4.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s7g2.nc', 'w')
-
-        # das5 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg_s8g2, plotpath, server, '_rsg_s8g2')
-        # das5.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s8g2.nc', 'w')
-
-        #T2P.plot_simple_MHS_comparison(lons, lats, q, tb0, tb1, plotpath, 'mhs',server)
-        
-    #if 'AMSR' in instrument: 
-    #    T2P.plot_simple_AMSR2_TEST(lons, lats, q, tb_csrttov, tb1, plotpath)
-    #    T2P.plot_simple_AMSR2_comparison(lons, lats, q, tb_csrttov, tb1, plotpath, 'amsr-2')
-     
     return
 
 #------------------------------------------------------------------------------
@@ -912,7 +897,8 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #main_makeProfs('MHS', '20:30', 6, 'cnrm')
 #main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
-main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0)
+for 
+main_Process_Expliu('MHS', '20:30', 6, 'yakaira', eqMass_do=0, lius=i, liug=j)
 
                
 #make_plots('MHS', '20:30', 6, 'yakaira')
