@@ -368,7 +368,7 @@ def plot_ZH1km_WRF_wWRF_shelicity(EXP, title, folders, domain):
     return
     
 #------------------------------------------------------------------------------
-def plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, title, folders, domain):
+def plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, intplev, title, folders, domain):
     
     import matplotlib
 
@@ -588,7 +588,7 @@ def plot_WRF_intqx(EXP, title, mp, folders, domain):
     
     
 #------------------------------------------------------------------------------
-def plot_ZH1km_WRF_wWRFwind(EXP, title, domain, folders):
+def plot_ZH1km_WRF_wWRFwind(EXP, title, domain, intplev, folders):
     
     import matplotlib
 
@@ -646,9 +646,9 @@ def plot_ZH1km_WRF_wWRFwind(EXP, title, domain, folders):
     p = wrf.getvar(ncfile, 'p', units="hPa")
     u = wrf.getvar(ncfile, 'ua')
     v = wrf.getvar(ncfile, 'va')
-    ufld = wrf.interplevel(u, p, 850)
-    vfld = wrf.interplevel(v, p, 850)
-    qfld = wrf.interplevel(q, p, 850)
+    ufld = wrf.interplevel(u, p, intplev)
+    vfld = wrf.interplevel(v, p, intplev)
+    qfld = wrf.interplevel(q, p, intplev)
     
     grad_q_x,grad_q_y = np.gradient(qfld.values)
     grad_u_x,grad_u_y = np.gradient(ufld.values)
@@ -661,9 +661,9 @@ def plot_ZH1km_WRF_wWRFwind(EXP, title, domain, folders):
     cffield = qfld
     cffield.values= -1.*wrf.smooth2d(86400.*1000.*(MFC_advect + MFC_conv),30)
 
-    cffield.attrs['description']='850 hPa moisture convergence and theta-e'
+    cffield.attrs['description']=str(intplev)+' hPa moisture convergence and theta-e'
     cffield.attrs['units']='g kg-1 dy-1; K'
-    ethinterp = wrf.smooth2d(wrf.interplevel(eth, p, 850),30)
+    ethinterp = wrf.smooth2d(wrf.interplevel(eth, p, intplev),30)
     #lfield= None
     lfield3 = None 
     ufld = ufld*1.94
@@ -760,11 +760,11 @@ def plot_ZH1km_WRF_wWRFwind(EXP, title, domain, folders):
     ax.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2.5)
          
     ax.grid()
-    ax.set_title('850 hPa moisture convergence and theta-e at '+title)
+    ax.set_title(str(intplev)+' hPa moisture convergence and theta-e at '+title)
     
     ax.text(x=-65, y=-34.9, s='120 and 220 km radar rings')
     #plt.show()
-    fig.savefig(save_dir_compare+'/'+EXP+'/convergence/WRF_ZH1km_'+domain+'_general_evolution_'+title+'WRFvars_moistureconvergence_simpler.png', dpi=300,transparent=False,bbox_inches='tight')
+    fig.savefig(save_dir_compare+'/'+EXP+'/convergence/WRF_ZH1km_'+domain+'_general_evolution_'+title+'WRFvars_moistureconvergence'+str(intplev)+'_simpler.png', dpi=300,transparent=False,bbox_inches='tight')
     plt.close()
 
     
@@ -1516,7 +1516,7 @@ def plot_common_transect_level_MAP(EXP_WSM6, time):
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def plot_WRF_diffvar_only(EXP1, EXP2, title):
+def plot_WRF_diffvar_only(EXP1, EXP2, intplev, title):
     
     import matplotlib
 
@@ -1559,12 +1559,12 @@ def plot_WRF_diffvar_only(EXP1, EXP2, title):
     t2           = wrf.getvar(ncfile, "T2", timeidx=-1)     # 2-m temperature
     eth          = wrf.g_temp.get_eth(ncfile)               # equivalent potential temperature theta_e tita-e
     wspd         = wrf.getvar(ncfile, "wspd_wdir", units="kts")[0,:]
-    eth_850      = wrf.interplevel(eth, p, 850)
-    theta_850    = wrf.interplevel(theta, p, 850)
+    eth_850      = wrf.interplevel(eth, p, intplev)
+    theta_850    = wrf.interplevel(theta, p,intplev )
     ua           = wrf.getvar(ncfile, "ua", units="kt")
     va           = wrf.getvar(ncfile, "va", units="kt")
-    u850         = wrf.interplevel(ua, p, 850)
-    v850         = wrf.interplevel(va, p, 850)
+    u850         = wrf.interplevel(ua, p, intplev)
+    v850         = wrf.interplevel(va, p, intplev)
 
     
     #------ READ WRF variables of interest ------------------------------------
@@ -1580,17 +1580,17 @@ def plot_WRF_diffvar_only(EXP1, EXP2, title):
     t21           = wrf.getvar(ncfile, "T2", timeidx=-1)     # 2-m temperature
     eth1          = wrf.g_temp.get_eth(ncfile)               # equivalent potential temperature theta_e tita-e
     wspd1         = wrf.getvar(ncfile, "wspd_wdir", units="kts")[0,:]
-    eth_8501      = wrf.interplevel(eth1, p1, 850)
-    theta_8501    = wrf.interplevel(theta1, p1, 850)
+    eth_8501      = wrf.interplevel(eth1, p1, intplev)
+    theta_8501    = wrf.interplevel(theta1, p1, intplev)
     ua1           = wrf.getvar(ncfile, "ua", units="kt")
     va1           = wrf.getvar(ncfile, "va", units="kt")
-    u8501         = wrf.interplevel(ua1, p1, 850)
-    v8501         = wrf.interplevel(va1, p1, 850)
+    u8501         = wrf.interplevel(ua1, p1, intplev)
+    v8501         = wrf.interplevel(va1, p1, intplev)
     
     #--------------------------------------------------------------------------
     fig, ax = plt.subplots(figsize=(8,8)) 
     pcm            = ax.contourf(lon, lat,  eth_850-eth_8501,  cmap=matplotlib.cm.get_cmap("viridis_r"), levels=np.arange(-20,20,5), vmin=-20, vmax=20)
-    cbar = plt.colorbar(pcm, ax=ax, shrink=1, label='eth (850 hPa)')
+    cbar = plt.colorbar(pcm, ax=ax, shrink=1, label='eth ('+str(intplev)+' hPa)')
     ax.plot(prov[:,0],prov[:,1],color='k'); 
     cbar.cmap.set_under('white')
     ax.set_xlim([-65.5,-62]); 
@@ -1611,7 +1611,7 @@ def plot_WRF_diffvar_only(EXP1, EXP2, title):
 
     ax.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2)    
     ax.set_title(EXP1+'-'+EXP2+ ' ('+title+')')
-    fig.savefig(save_dir_compare+'/'+'vertical_crossSection/diff_eth850hPa_map'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
+    fig.savefig(save_dir_compare+'/'+'vertical_crossSection/diff_eth'+str(intplev)+'hPa_map'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
     plt.close()
 
 
@@ -1698,7 +1698,7 @@ def plot_WRF_hovmoller_thetae(EXP):
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def plot_WRF_var_only(EXP, title, folders, domain):    
+def plot_WRF_var_only(EXP, intplev, title, folders, domain):    
     import matplotlib
 
     #folders   = config_folders.config_folders('yakaira')
@@ -1767,12 +1767,12 @@ def plot_WRF_var_only(EXP, title, folders, domain):
     t2        = wrf.getvar(ncfile, "T2", timeidx=-1)     # 2-m temperature
     eth       = wrf.g_temp.get_eth(ncfile)               # equivalent potential temperature theta_e tita-e
     wspd      = wrf.getvar(ncfile, "wspd_wdir", units="kts")[0,:]
-    eth_850   = wrf.interplevel(eth, p, 850)
-    theta_850 = wrf.interplevel(theta, p, 850)
+    eth_850   = wrf.interplevel(eth, p, intplev)
+    theta_850 = wrf.interplevel(theta, p,intplev)
     ua = wrf.getvar(ncfile, "ua", units="kt")
     va = wrf.getvar(ncfile, "va", units="kt")
-    u850 = wrf.interplevel(ua, p, 850)
-    v850 = wrf.interplevel(va, p, 850)
+    u850 = wrf.interplevel(ua, p, intplev)
+    v850 = wrf.interplevel(va, p,intplev)
   
     #--------------------------------------------------------------------------
     fig, ax = plt.subplots(figsize=(8,8)) 
@@ -1813,8 +1813,8 @@ def plot_WRF_var_only(EXP, title, folders, domain):
              wrf.to_np(v850[::resobarb,::resobarb]), length=6)
 
     ax.contour(lons_topo, lats_topo, topo_dat, levels=[0.5,1], colors=['gray','gray'], linewidths=2)    
-    ax.set_title(EXP+ ' eth (850hPa) '+title)
-    fig.savefig(save_dir_compare+'/'+EXP+'/vertical_crossSection/eth850hPa_map'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
+    ax.set_title(EXP+ ' eth ('+str(intplev)+'hPa) '+title)
+    fig.savefig(save_dir_compare+'/'+EXP+'/vertical_crossSection/eth'+str(intplev)+'hPa_map'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
     plt.close()
 
 
@@ -2080,7 +2080,7 @@ def main(exp, folders):
     return
 
 #------------------------------------------------------------------------------
-def run_all(): 
+def run_all(EXPs): 
     
     # borrar los config foldeders de adentro y pasarlos afurea! 
     folders=config_folders_final.config_folders('yakaira')
@@ -2105,15 +2105,18 @@ def run_all():
     #        'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP']
     # , 'P3_3MOM_LF_domain_noNoah']
     #
-    EXPs = ['P3mp54_domain3_YSU_noNoahMP']    
+    #EXPs = ['P3mp54_domain3_YSU_noNoahMP']    
     for EXP in EXPs:
-        for h in range(19, 21):
+        for h in range(12, 23):
             for m in range(0, 60, 30):
-                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', folders)
+                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', 850, folders)
+                plot_ZH1km_WRF_wWRFwind(EXP, f"{h}:{m:02d}", 'd02', 950, folders)
                 plot_ZH1km_WRF_wWRF_shelicity(EXP, f"{h}:{m:02d}", folders, 'd02')
                 plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd02', 'yakaira', folders)   #plot_ZH1km_WRF(EXP, title, domain, servidor):
-                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, f"{h}:{m:02d}", folders, 'd02')
-                plot_WRF_var_only(EXP, f"{h}:{m:02d}", folders, 'd02')
+                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, 850, f"{h}:{m:02d}", folders, 'd02')
+                plot_ZH1km_WRF_wWRF_uhelicity_only(EXP, 950, f"{h}:{m:02d}", folders, 'd02')
+                plot_WRF_var_only(EXP, 850, f"{h}:{m:02d}", folders, 'd02')
+                plot_WRF_var_only(EXP, 950, f"{h}:{m:02d}", folders, 'd02')
                 if 'WSM6' in EXP:	 
                     plot_WRF_intqx(EXP, f"{h}:{m:02d}",6, folders, 'd02')#,'yakaira')
                 elif 'P3' in EXP:
@@ -2144,6 +2147,7 @@ def run_all():
     #            elif 'P3' in EXP:
     #                plot_WRF_intqx(EXP, f"{h}:{m:02d}",54, folders, 'd02')#,'yakaira')
 
+    return
 
 
 #------------------------------------------------------------------------------
@@ -2237,6 +2241,6 @@ def run_cnrm():
     return
 
 #-----------------------------------------------------------------
-run_all() 
+run_all(['WSM6_domain3','WSM6_domain3_plevels']) 
 #run_obs_radar()
 #plot_VELradar_cspr2_singletime([-33.4,-31], [-65.5,-63.5])
