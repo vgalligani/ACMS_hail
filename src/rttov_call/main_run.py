@@ -2,23 +2,22 @@
 # -*- coding: utf-8 -*-
 """
 -----------------------------------------------------------------
-@purpose : Run rttov (or ARTS?) for the 2018-11-10 hail case (WRF WSM6 and P3)
+@purpose : Run rttov for the 2018-11-10 hail case (WRF WSM6 and P3)
 @author  : Vito Galligani
 @email   : vito.galligani@gmail.com
 @condaenv: conda activate 
 -----------------------------------------------------------------
-@main    : Runs clear-sky RTTOV v13.4 or 14? 
-           using run_example_fwd_VITO.sh
+@main    : Makes the necessary RTTOV v14 input profiles for all-sky simulations 
           
            remember use for reference: https://github.com/lkugler/RTTOV-WRF/blob/master/rttov_wrf.py
            and also to open remote session:
                nohup python -m spyder_kernels.console -matplotlib='inline' -f=./remotemachine.json &4
                sshfs vito.galligani@yakaira.cima.fcen.uba.ar:/home/vito.galligani/Work remote_project
                
-               
-@PROFILES: HARD-CODED some profiles that have invalid values. 
-profile number =     2324
+              
+@PROFILES: Some profiles are ignored based on pressure (not monotonic and outside rttov valid limits)
 
+@TODO: not yet consistent with P3-scheme
 -----------------------------------------------------------------
 """
 
@@ -52,16 +51,13 @@ import sys
 import seaborn as sns 
 import matplotlib as mpl
 
-#sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
-sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
-
-from package_functions import pressure2height
 
 plt.matplotlib.rc('font', family='serif', size = 12)
 plt.rcParams['xtick.labelsize']=12
 plt.rcParams['ytick.labelsize']=12  
 
-
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 def eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, experiment, nchan): #where exp='__eqMass_WSM6_rsg'
 	
 	# main output folder
@@ -78,7 +74,7 @@ def eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, experiment,
                 init = np.genfromtxt(file_folder+file_)
                 tb = np.zeros(( 11, 11, init.shape[0], init.shape[1] )); tb[:]=np.nan
             tb[i,j,:,:] =  np.genfromtxt(file_folder+file_)
-            nter=counter+1
+            counter=counter+1
 
         return tb       
  
@@ -86,17 +82,17 @@ def eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, experiment,
 #------------------------------------------------------------------------------
 def main(makeProfs, instrument, HHtime, mp_version, server): 
 
-    import package_functions as funs
-
     plotpath, folders = config_folders(server)
     
     # Select server and folder locations
     #--------------------------------------------------------------------------
     if 'yakaira' in server: 
         upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
+        sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
                 
     elif 'cnrm' in server:
         upfolder    = '/home/galliganiv/'   
+        sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
             
     # Select instrument configurations
     #--------------------------------------------------------------------------
@@ -104,6 +100,11 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         nchan = 5
     elif 'AMSR' in instrument:
         nchan = 14
+        
+    #--------------------------------------------------------------------------
+    # server dependent files    
+    from package_functions import pressure2height
+    import package_functions as funs
     
     #--------------------------------------------
     # Filter some profiles 
@@ -183,7 +184,6 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
         tb_asrttov_eqMass_rsg   = np.zeros( (11,11,nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
         tb_asrttov_rsg          = np.zeros( (11,11,nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
 
-	
         #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
         # read for all liu - liu combinations w/ snow and grau
         # default cloud overlap settings as above (+renormalization)
@@ -198,10 +198,7 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
                 HHtime, instrument, '_WSM6_rsg', nchan)
         gc.collect()
 
-
         # Save some aux WRF data to dataframe
-        #domainlons = [-65.5,-62]
-        #domainlats = [-33.5,-31.3] 
         qinttot = np.nansum( [qi_int.data, qc_int.data, qs_int.data,  
                             qr_int.data, qg_int.data], axis=0 )
                 
@@ -249,28 +246,11 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
                         for iliug in range(11):
                             tb_asrttov_eqMass_rsg[ilius,iliug,:,i,j] = exp_asrttov_eqmass_rsgliu[ilius, iliug, rttov_counter-1,:]
                             tb_asrttov_rsg[ilius,iliug,:,i,j]        = exp_asrttov_rsgliu[ilius, iliug, rttov_counter-1,:]
-
-                    #tb_asrttov_rsg[0,:,i,j]  = WSM6_file_as_rsg_s1g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[1,:,i,j]  = WSM6_file_as_rsg_s2g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[2,:,i,j]  = WSM6_file_as_rsg_s3g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[3,:,i,j]  = WSM6_file_as_rsg_s4g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[4,:,i,j]  = WSM6_file_as_rsg_s5g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[5,:,i,j]  = WSM6_file_as_rsg_s6g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[6,:,i,j]  = WSM6_file_as_rsg_s7g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[7,:,i,j]  = WSM6_file_as_rsg_s8g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[8,:,i,j]  = WSM6_file_as_rsg_s9g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[9,:,i,j]  = WSM6_file_as_rsg_s10g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[10,:,i,j] = WSM6_file_as_rsg_s11g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[11,:,i,j] = WSM6_file_as_rsg_s12g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[12,:,i,j] = WSM6_file_as_rsg_s13g2[rttov_counter-1,:]
-                    #tb_asrttov_rsg[13,:,i,j] = WSM6_file_as_rsg_s14g2[rttov_counter-1,:]
-
-                    #tb1[:,i,j] = WSM6_atlas_file[rttov_counter-1,:]
         
+                
         #----- SIMPLE PLOTS: make plots with integrated qx forzen y rain, y todos los canales
         # y stats. comparar diferencia clear sky con obs.# improves with atlas? 
-        
-        
+                
         if 'MHS' in instrument: 
             
             outfile           = 'output_tb_'+instrument
@@ -287,7 +267,7 @@ def main(makeProfs, instrument, HHtime, mp_version, server):
             #    das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(issp+1)+'g2.nc', 'w')
             #    das1.close()
             for ilius in range(11):
-            	for iliug in range(11):
+                for iliug in range(11):
                     das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[ilius, iliug,:,:,:], plotpath, server, '_rsg_s'+str(ilius)+'g'+str(iliug))
                     das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(ilius)+'g'+str(iliug)+'.nc', 'w')
                     das1.close()
@@ -817,7 +797,7 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #make_profs('MHS', '20:30', 6, 'cnrm')
-make_plots('MHS', '20:30', 6, 'yakaira')
+make_plots('MHS', '20:30', 6, 'cnrm')
 #make_stats('MHS', '20:30', 6, 'cnrm')
 
 
