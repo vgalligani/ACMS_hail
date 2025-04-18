@@ -903,15 +903,24 @@ def make_stats(instrument, HHtime, mp_version, server):
 #------------------------------------------------------------------------------
 #main_makeProfs('MHS', '20:30', 6, 'cnrm')
 #main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
-
+import sys
 #--------------------------------------------
-server = 'yakaira'
-skipProfs = filter_pixels_monotonic(6, '20:30', server)   
-for isnow in range(11):
-    for  igrau in range(11):
-        main_Process_Expliu('MHS', '20:30', 6, server, skipProfs, eqMass_do=0, isnow=isnow, igrau=igrau)
-        print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
-        gc.collect() 
+def main(isnow, igrau):
+    
+    server = 'yakaira'
+    skipProfs = filter_pixels_monotonic(6, '20:30', server)   
+    main_Process_Expliu('MHS', '20:30', 6, server, skipProfs, eqMass_do=1, isnow=isnow, igrau=igrau)
+    print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python your_script.py <isnow> <igrau>")
+        sys.exit(1)
+    
+    isnow = int(sys.argv[1])   # or float() if needed
+    igrau = int(sys.argv[2])   # or float() if needed
+    main(isnow, igrau)
+
         
 #make_plots('MHS', '20:30', 6, 'yakaira')
 #make_stats('MHS', '20:30', 6, 'cnrm')
