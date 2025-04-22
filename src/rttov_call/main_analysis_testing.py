@@ -119,36 +119,26 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
     if 'wrf_nativ_grid' in grid:
         # WRF-WSM6 consistent experiment (Repeat with eqMass and all liu-liu combinations)
         # READ NETCDFs
-        tb_as_liuliu = [] 
-        for i in range(11):
-            rowi = []
-            for  j in range(11):
-                expname     = 'rttov_processed_allsky_rsg_s'+str(i)+'g'+str(j)+'.nc'
-                d_liuliu    = xr.open_dataset(processedFolder+'/'+outfile+expname)
-                var         = d_liuliu['rttov_as'].values
-                rowi.append(var)
-            tb_as_liuliu.append(rowi)
-        tb_as_liuliu = np.array(tb_as_liuliu)
-                    
-        #------------------------------------------------------------------------------
-        if (do_map_plot == 1):
-            for igrau in range(11):
-                title = 'rttov_nativegrid_WSM6_rsg_allisnow_wigrau_'
-                T2P.make_all_liuliu_maps(lonlon, latlat, tb_as_liuliu[:,igrau,:,:], 'cnrm', igrau, plotpath, title) 
-                
         #------------------------------------------------------------------------------------------
         # eq. Mass WRF-WSM6 consistent experiment 
         # READ NETCDFs
         tb_as_eqMass_liuliu = [] 
+        tb_as_eqMass_liuliu_gaus = [] 
         for i in range(11):
             rowi = []
+            rowigaus = []
             for  j in range(11):
                 expname     = 'rttov_processed_allsky_eqMass_rsg_s'+str(i)+'g'+str(j)+'.nc'
                 d_liuliu    = xr.open_dataset(processedFolder+'/'+outfile+expname)
                 var         = d_liuliu['rttov_as'].values
+                var_gaus    = d_liuliu['rttov_as_Gaussianantennasigma_'].values
                 rowi.append(var)
+                rowigaus.append(var_gaus)
             tb_as_eqMass_liuliu.append(rowi)
-        tb_as_eqMass_liuliu = np.array(tb_as_eqMass_liuliu)            
+            tb_as_eqMass_liuliu_gaus.append(rowigaus)
+
+        tb_as_eqMass_liuliu      = np.array(tb_as_eqMass_liuliu)            
+        tb_as_eqMass_liuliu_gaus = np.array(tb_as_eqMass_liuliu_gaus)            
     
         #------------------------------------------------------------------------------
         if (do_map_plot == 1):
@@ -162,42 +152,115 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
     extent = [ -64, -50, -40, -20]
     var_cut_liu    = []
     var_cut_eqMliu = []
+    
     for isnow in range(11):
         rowi1 = []
         rowi2 = []
+        
         for igrau in range(11):
-            var_cut1 = T2P.get_maskedDomain(extent, d_cs,  tb_as_liuliu[isnow,igrau,:,:,:])
             var_cut2 = T2P.get_maskedDomain(extent, d_cs,  tb_as_eqMass_liuliu[isnow,igrau,:,:,:])
-            rowi1.append(var_cut1)
             rowi2.append(var_cut2)    
-        var_cut_liu.append(rowi1)
         var_cut_eqMliu.append(rowi2)
-    var_cut_liu = np.array(var_cut_liu)            
-    var_cut_eqMliu = np.array(var_cut_eqMliu)            
+
+    var_cut_eqMliu = np.array(var_cut_eqMliu)   
 
     #------------------------------------------------------------------------------------------
     # I would also like to mask clouds to focus on histograms of scatt! 
-    WRF_intTot_cut = T2P.get_maskedDomain2d(extent, d_cs, WRFvars['WRF_intTot'].data) 
-    cloudmask_WRF  = np.ma.masked_less_equal(WRF_intTot_cut, 0.1) # point model gri
-    cloudmask_obs1 = np.ma.masked_less_equal( d_cs['MHs_domain_obs'][3,:,:]-d_cs['MHs_domain_obs'][4,:,:], 0.2)     # very rought estimate: obs interp grid 
+    WRF_intTot_cut    = T2P.get_maskedDomain2d(extent, d_cs, WRFvars['WRF_intTot'].data) 
+    cloudmask_WRF     = np.ma.masked_less_equal(WRF_intTot_cut, 0.1) # point model gri
+    cloudmask_WRFgaus = np.ma.masked_less_equal(WRFvars['MHSGaussian_intTot'], 1)      # Gaussian interp grid 
+    cloudmask_obs1    = np.ma.masked_less_equal( d_cs['MHs_domain_obs'][3,:,:]-d_cs['MHs_domain_obs'][4,:,:], 0.2)     # very rought estimate: obs interp grid 
     # I also test a more restrictive condition to MHS observed: d_cs['MHs_domain_obs'][1,:,:]-280)<0
     cloudmask_obs2 = np.ma.masked_greater_equal( d_cs['MHs_domain_obs'][1,:,:]-280, 0)
-           
-    # WSM6
-    T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6_fix')
-    T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6_fix')
     
     # eqMass WSM6
-    T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass_fix')
-    T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass_fix')    
+    #T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass_fix')
+    #T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass_fix')    
     
-    #breakpoint() 
+    breakpoint() 
+    # Calculate HDI index at the two differente resolutions
+    HDI_wrfresolution, HDI_wrfgaussian = T2P.calc_stats( nchan, d_cs, var_cut_eqMliu, 
+                        tb_as_eqMass_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
 
-    #------------------------------------------------------------------------------------------
+    # and make plots
+    make_plots_hdi(nchan, plotpath, HDI_wrfresolution, HDI_wrfgaussian)
+    
 
-    #kwargs      = dict({'element':'step', 'fill':False, 'stat':"density", 
-    #                    'bins':np.arange(50,320,10), 'alpha':0.8}) #'log_scale':(False,True)}) # maybe stat=density
-    # kde_kws = dict({'bw_adjust': 0.1, 'common_norm':False }) 
+
+    # Calculate HDI index at the two differente resolutions
+
+
+
+
+    #--
+    
+    # Histoplot params
+    #------------------------------------------------------
+    ichan_title = ['89.0', '157.0', '183.311$\pm$3', '190.311']
+    chan_indx   = [0,1,3,4]
+    base_colors = sns.color_palette('Paired')         
+    all_shades = []
+    for base in base_colors:
+        shades = sns.light_palette(base, n_colors=11, input='rgb') #, reverse=True)
+        all_shades.append(shades)
+    #------------------------------------------------------
+    #---- All in one figure 
+    fig, axes = plt.subplots(nrows=2, ncols=2, constrained_layout=True,figsize=[8,8]) 
+    axes = axes.flatten()
+    for index, i in enumerate(chan_indx):
+        varobs2 = np.ma.array( d_cs['MHs_domain_obs'].data[i,:,:], mask=cloudmask_obs2.mask).flatten()
+        varobs2 = varobs2.flatten()     
+        for igrau in range(11): 
+            varliu  = np.ma.array( var_cut_eqMliu[0, igrau,i,:,:], mask=cloudmask_WRF.mask) 
+            varliu  = varliu.flatten() 
+            sns.kdeplot( data = varliu, color=all_shades[0][igrau], ax=axes[index], bw_adjust=0.1)#**kde_kws) 
+            varliu_g  = np.ma.array( tb_as_eqMass_liuliu_gaus[0, igrau,i,:,:], mask=cloudmask_WRFgaus.mask) 
+            varliu_g  = varliu_g.flatten() 
+            sns.kdeplot( data = varliu_g, color='gray', ax=axes[index], bw_adjust=0.2)#**kde_kws) 
+
+        axes[index].set_title(ichan_title[index]+' GHz')
+        axes[index].set_xlim([50,310])
+        sns.kdeplot( data = varobs2, color='k', ax=axes[index], label='Obs', bw_adjust=0.2) #**kde_kws) 
+    
+    #------------------------------------------------------    
+    # check the histograms for 89GGHz
+    data_obs = np.ma.array( d_cs['MHs_domain_obs'].data[0,:,:], mask=cloudmask_obs2.mask).flatten()
+    hist_obs, bin_edges = np.histogram(data_obs[:], bins=np.arange(10,320,5), density=True)
+
+    data_sim = np.ma.array( var_cut_eqMliu[0,0,0,:,:], mask=cloudmask_WRF.mask) 
+    data_sim = data_sim.flatten() 
+    hist_sim, _  = np.histogram(data_sim[:], bins=np.arange(10,320,5), density=True)
+                
+    data_sim_gaus = np.ma.array( tb_as_eqMass_liuliu_gaus[0,0,0,:,:], mask=cloudmask_WRFgaus.mask) 
+    data_sim_gaus = data_sim_gaus.flatten() 
+    hist_sim_gaus, _  = np.histogram(data_sim_gaus[:], bins=np.arange(10,320,5), density=True)
+    
+    fig = plt.figure(figsize=[8,8])
+    plt.plot(hist_obs, 'k-', label='obs')
+    plt.plot(hist_sim, color='darkblue', label='wrf grid')
+    plt.plot(hist_sim_gaus, color='darkred', label='gaussian')
+    
+                
+                
+    #------------------------------------------------------    
+    plot as a functoipn of freqwuencyu deltaTB due to cloud-clear                      
+                
+    T2P.plot_MHS_colorbarlims_poster(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data,'testing_poster_obs',
+                              50, 300, plotpath, 'cnrm','testing_poster_obs')
+    T2P.plot_MHS_colorbarlims_poster(d_cs['MHS_lon'], d_cs['MHS_lat'], tb_as_eqMass_liuliu_gaus[10,8,:,:,:],'testing_poster_gaussian',
+                              50, 300, plotpath, 'cnrm','testing_poster_gaussian')
+
+    
+    T2P.plot_MHS(d_cs['wrf_lon'], d_cs['wrf_lat'], d_cs['MHs_domain_obs'].data, 50, 300,
+                 'testing_poster', plotpath, 'cnrm', 'testing_poster')
+
+
+d(lonlon, latlat, tbtb, title, vminn, vmaxx, plotpath, server, exp):
+    # fig, axes = plt.subplots(nrows=1, ncols=3, constrained_layout=True,figsize=[15,7])
+    # pcm=axes[0].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data[0,:,:]);
+    # plt.colorbar(pcm, ax=axes[0]); axes[0].set_title('OBS')
+
+    
 
     # comapre with rttov_as_Gaussianantennasigma_
     #import Tools2Plot as T2P
@@ -208,10 +271,33 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
 
 
     return
-        
 
 
-        
+
+    # 2) I don't compute stats based on FG as they are too different.  
+    # Like skewness. Here I need to chose one way to keep the same resolution! choose gaussian? 
+    # and replicate above HDI with the gausssian too !
+    FG = np.zeros(nchan, 11, 11); FG[:]=np.nan
+    for i in range(nchan):
+        for isnow in range(11):
+            for igrau in range(11):
+                FG_ = d_cs['MHs_domain_obs'].data[i,:,:] - data_sim_rescaled[isnow,igrau,i,:,:]
+
+
+
+
+
+
+    # fig, axes = plt.subplots(nrows=1, ncols=3, constrained_layout=True,figsize=[15,7])
+    # pcm=axes[0].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data[0,:,:]);
+    # plt.colorbar(pcm, ax=axes[0]); axes[0].set_title('OBS')
+    # pcm=axes[1].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], tb_as_eqMass_liuliu_gaus[0,0,0,:,:]); 
+    # plt.colorbar(pcm, ax=axes[1]); axes[1].set_title('sim')
+    # pcm=axes[2].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data[0,:,:] - tb_as_eqMass_liuliu_gaus[0,0,0,:,:]); 
+    # plt.colorbar(pcm, ax=axes[2]); axes[2].set_title('diff')
+    # for i in range(3):
+    #     axes[i].set_ylim([-35,-30])
+    #     axes[i].set_xlim([-70,-60])
         
         
     #     meansims[0,i] = np.round( np.nanmean( varsim1.flatten() ) ,2) 
