@@ -595,6 +595,7 @@ def main_Process_Expliu_iwc(instrument, HHtime, mp_version, server, skipProfs, e
     elif (eqMass_do == 0):
         exp_asrttov_rsgliu = eqmass_exp_one_iwc(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_rsg', nchan, isnow, igrau, iwc_name)
 
+    outfile           = 'output_tb_'+instrument
     tb_asrttov_eqMass_rsg  = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan
     tb_asrttov_rsg         = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan
     counter = 0
@@ -611,8 +612,9 @@ def main_Process_Expliu_iwc(instrument, HHtime, mp_version, server, skipProfs, e
         else:
             if (eqMass_do==1):
                 tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[rttov_counter-1,:]
-            elif (eqMass_do==2):
+            elif (eqMass_do==0):
                 tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+            rttov_counter=rttov_counter+1
 
 
     # Pre-process like this if MHS                

@@ -140,6 +140,7 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
         T2P.make_obsdummy_liuliu_maps(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data, 
                                       server, plotpath) 
         #------------------------------------------------------------------------------
+        print('Read WRF-WSM6 liuliu')
         if (do_map_plot == 1):
             for igrau in range(11):
                 T2P.make_all_liuliu_maps(lonlon, latlat, tb_as_liuliu[:,igrau,:,:], server, igrau, plotpath) 
@@ -165,61 +166,217 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
         tb_as_eqMass_liuliu      = np.array(tb_as_eqMass_liuliu)            
         tb_as_eqMass_liuliu_gaus = np.array(tb_as_eqMass_liuliu_gaus)            
    
+        print('Read WRF-eqMass WSM6 liuliu')
         #------------------------------------------------------------------------------
         if (do_map_plot == 1):
             for igrau in range(11):
                 title = 'FIX_rttov_nativegrid_eqMassWSM6_rsg_allisnow_wigrau_'
                 T2P.make_all_liuliu_maps(lonlon, latlat, tb_as_eqMass_liuliu[:,igrau,:,:], server, igrau, plotpath, title)     
 
-    #------------------------------------------------------------------------------------------
-    # All outputs saved in netcdf belong to the same extent data: [ -70, -50, -40, -20]
-    # but what about this other;    
-    extent = [ -64, -50, -40, -20]
-    var_cut_liu    = []
-    var_cut_eqMliu = []
-    for isnow in range(11):
-        rowi1 = []
-        rowi2 = []
-        for igrau in range(11):
-            var_cut1 = T2P.get_maskedDomain(extent, d_cs,  tb_as_liuliu[isnow,igrau,:,:,:])
-            var_cut2 = T2P.get_maskedDomain(extent, d_cs,  tb_as_eqMass_liuliu[isnow,igrau,:,:,:])
-            rowi1.append(var_cut1)
-            rowi2.append(var_cut2)    
-        var_cut_liu.append(rowi1)
-        var_cut_eqMliu.append(rowi2)
-    var_cut_liu = np.array(var_cut_liu)            
-    var_cut_eqMliu = np.array(var_cut_eqMliu)            
+        #------------------------------------------------------------------------------------------
+        # eq. Plot all the SSP options for snow and grau = soft sphere for EqMass and WSM6 options        
+        # READ NETCDFs output_tb_MHSrttov_processed_allsky_eqMass_rsg_s9g9grau_iwc.nc
+        tb_as_eqMass_liu_gsf      = np.zeros((11,1,5,lonlon.shape[0],lonlon.shape[1])); tb_as_eqMass_liu_gsf[:]=np.nan
+        for i in range(11):
+            expname     = 'rttov_processed_allsky_eqMass_rsg_s'+str(i)+'grausp'+'.nc'
+            d_liugrausp = xr.open_dataset(processedFolder+'/'+outfile+expname)
+            var         = d_liugrausp['rttov_as'].values
+            tb_as_eqMass_liu_gsf[i,0,:,:,:] = (var)
 
-    #------------------------------------------------------------------------------------------
-    # I would also like to mask clouds to focus on histograms of scatt! 
-    WRF_intTot_cut = T2P.get_maskedDomain2d(extent, d_cs, WRFvars['WRF_intTot'].data) 
-    cloudmask_WRF  = np.ma.masked_less_equal(WRF_intTot_cut, 0.1) # point model gri
-    cloudmask_obs1 = np.ma.masked_less_equal( d_cs['MHs_domain_obs'][3,:,:]-d_cs['MHs_domain_obs'][4,:,:], 0.2)     # very rought estimate: obs interp grid 
-    # I also test a more restrictive condition to MHS observed: d_cs['MHs_domain_obs'][1,:,:]-280)<0
-    cloudmask_obs2 = np.ma.masked_greater_equal( d_cs['MHs_domain_obs'][1,:,:]-280, 0)
-           
-    #- histogram plots
-    if (do_map_plot == 1):
-        # WSM6
-        T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6')
-        T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6')
+        # READ NETCDFs output_tb_MHSrttov_processed_allsky_rsg_s9g9grau_iwc.nc
+        tb_as_liu_gsf      = np.zeros((11,1,5,lonlon.shape[0],lonlon.shape[1])); tb_as_liu_gsf[:]=np.nan
+        for i in range(11):
+            expname     = 'rttov_processed_allsky_rsg_s'+str(i)+'grausp'+'.nc'
+            d_liugrausp = xr.open_dataset(processedFolder+'/'+outfile+expname)
+            var         = d_liugrausp['rttov_as'].values
+            tb_as_liu_gsf[i,0,:,:,:] = var
+        tb_as_liu_gsf      = np.array(tb_as_liu_gsf)           
+        
+        print('Read WRF-eqMass and WSM6 liu grau soft shere')
+
+        if (do_map_plot == 1):
+            fig, axes = plt.subplots(nrows=11, ncols=4, constrained_layout=True,figsize=[10,15])
+            title = 'FIX_rttov_nativegrid_eqMassWSM6_rsg_allisnow_wgrausp'
+            for isnow in range(11):
+                T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_eqMass_liu_gsf[isnow,0,:,:], server, axes, isnow, 
+                                     'EqMass_WSM6_rsg_s'+str(isnow)+'graupel_softsphere')
+            fig.savefig(plotpath+'/RTTOV/'+title+'.png', dpi=300,transparent=False)   
+            plt.close()
+        
+            title = 'FIX_rttov_nativegrid_WSM6_rsg_allisnow_wgrausp'
+            for isnow in range(11):
+                T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_liu_gsf[isnow,0,:,:], server, axes, isnow, 
+                                     'WSM6_rsg_s'+str(isnow)+'graupel_softsphere')
+            fig.savefig(plotpath+'/RTTOV/'+title+'.png', dpi=300,transparent=False)   
+            plt.close()    
+
+
+        #------------------------------------------------------------------------------------------
+        extent = [ -64, -50, -40, -20]
+        # eq. Get experiments of half_snow_iwc and half_grau_iwc for ssp=9 and ssp=3 for snow and grau
+        # for eqMass and WSM6
+        tb_as_eqMass_liuliu_snowhalfiwc = np.zeros((2,1,5,lonlon.shape[0],lonlon.shape[1])); tb_as_eqMass_liuliu_snowhalfiwc[:]=np.nan
+        tb_as_eqMass_liuliu_grauhalfiwc = np.zeros((2,1,5,lonlon.shape[0],lonlon.shape[1])); tb_as_eqMass_liuliu_grauhalfiwc[:]=np.nan
+        liuopts = [3,9]
+        counter = 0
+        for i in liuopts:
+            expname = 'rttov_processed_allsky_eqMass_rsg_s'+str(i)+'g'+str(i)+'grau_iwc'+'.nc'  
+            d_1     = xr.open_dataset(processedFolder+'/'+outfile+expname)
+            var     = d_1['rttov_as'].values
+            tb_as_eqMass_liuliu_grauhalfiwc[counter,0,:,:,:] = var
+            
+            expname = 'rttov_processed_allsky_eqMass_rsg_s'+str(i)+'g'+str(i)+'snow_iwc'+'.nc'  
+            d_1     = xr.open_dataset(processedFolder+'/'+outfile+expname)
+            var     = d_1['rttov_as'].values
+            tb_as_eqMass_liuliu_snowhalfiwc[counter,0,:,:,:] = var                 
+            
+            counter = counter+1
+
+        tb_as_liuliu_snowhalfiwc = np.zeros((2,1,5,lonlon.shape[0],lonlon.shape[1])); tb_as_liuliu_snowhalfiwc[:]=np.nan
+        tb_as_liuliu_grauhalfiwc = np.zeros((2,1,5,lonlon.shape[0],lonlon.shape[1])); tb_as_liuliu_grauhalfiwc[:]=np.nan
+        liuopts = [3,9]
+        counter = 0
+        for i in liuopts:
+            expname = 'rttov_processed_allsky_rsg_s'+str(i)+'g'+str(i)+'grau_iwc'+'.nc'  
+            d_1     = xr.open_dataset(processedFolder+'/'+outfile+expname)
+            var     = d_1['rttov_as'].values
+            tb_as_liuliu_grauhalfiwc[counter,0,:,:,:] = var
+            
+            expname = 'rttov_processed_allsky_rsg_s'+str(i)+'g'+str(i)+'snow_iwc'+'.nc'  
+            d_1     = xr.open_dataset(processedFolder+'/'+outfile+expname)
+            var     = d_1['rttov_as'].values
+            tb_as_liuliu_snowhalfiwc[counter,0,:,:,:] = var     
+            
+            counter = counter+1       
+        
+        
+        # use extent to limit 
+        extent = [ -64, -50, -40, -20]
+        var_cut_wsm6_grauhalf    = []
+        var_cut_wsm6_snowhalf    = []
+        var_cut_eqMasswsm6_grauhalf    = []
+        var_cut_eqMasswsm6_snowhalf    = []
+        for isnow in range(2):
+            var_cut1 = T2P.get_maskedDomain(extent, d_cs,  tb_as_liuliu_grauhalfiwc[isnow,0,:,:,:])
+            var_cut2 = T2P.get_maskedDomain(extent, d_cs,  tb_as_liuliu_snowhalfiwc[isnow,0,:,:,:])
+            var_cut3 = T2P.get_maskedDomain(extent, d_cs,  tb_as_eqMass_liuliu_grauhalfiwc[isnow,0,:,:,:])
+            var_cut4 = T2P.get_maskedDomain(extent, d_cs,  tb_as_eqMass_liuliu_snowhalfiwc[isnow,0,:,:,:])
+                
+            var_cut_wsm6_grauhalf.append(var_cut1)
+            var_cut_wsm6_snowhalf.append(var_cut2)  
+            var_cut_eqMasswsm6_grauhalf.append(var_cut3)
+            var_cut_eqMasswsm6_snowhalf.append(var_cut4)         
     
-        # eqMass WSM6
-        T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass')
-        T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass')    
-    
-    # Calculate HDI index at the two differente resolutions
-    cloudmask_WRFgaus = np.ma.masked_less_equal(WRFvars['MHSGaussian_intTot'], 1)      # Gaussian interp grid 
-    HDI_wrfresolution_eqMass, HDI_wrfgaussian_eqMass = T2P.calc_stats( nchan, d_cs, var_cut_eqMliu, 
-                        tb_as_eqMass_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
-    
-    HDI_wrfresolution_WSM6, HDI_wrfgaussian_WSM6 = T2P.calc_stats( nchan, d_cs, var_cut_liu, 
-                        tb_as_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
-    if (do_map_plot == 1):
-        T2P.make_plots_hdi(nchan, plotpath, HDI_wrfresolution_eqMass, HDI_wrfgaussian_eqMass,  'eqMass_WSM6')
-        T2P.make_plots_hdi(nchan, plotpath, HDI_wrfresolution_WSM6, HDI_wrfgaussian_WSM6,  'WSM6')
-    
-    breakpoint() 
+        var_cut_wsm6_grauhalf = np.array(var_cut_wsm6_grauhalf)            
+        var_cut_wsm6_snowhalf = np.array(var_cut_wsm6_snowhalf)                 
+        var_cut_eqMasswsm6_grauhalf = np.array(var_cut_eqMasswsm6_grauhalf)            
+        var_cut_eqMasswsm6_snowhalf = np.array(var_cut_eqMasswsm6_snowhalf)             
+        
+        
+        print('Read WRF-eqMass and WSM6 liu iwc half testing')
+        # PLOT THIS: I HAVE tb_as_liuliu_snowhalfiwc[2lius, 0, :,:,:] and 2 differnete experiments WSM6 and eqMass
+        #--------------- FOR eqMAssWSM6: one figure for liu:9 and liu:3
+        fig, axes = plt.subplots(nrows=2, ncols=4, constrained_layout=True,figsize=[10,5])
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_eqMass_liuliu_snowhalfiwc[0,0,:,:,:], server, axes, 0, 
+                                     'EqMass_WSM6_halfsnow')
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_eqMass_liuliu_grauhalfiwc[0,0,:,:,:], server, axes, 1, 
+                                     'EqMass_WSM6_halfgrau')
+        fig.savefig(plotpath+'/RTTOV/'+'FIX_rttov_nativegrid_eqMassWSM6_rsg_s3g3'+'halfiwc.png', dpi=300,transparent=False)   
+        plt.close()
+
+        fig, axes = plt.subplots(nrows=2, ncols=4, constrained_layout=True,figsize=[10,5])
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_eqMass_liuliu_snowhalfiwc[1,0,:,:,:], server, axes, 0, 
+                                     'EqMass_WSM6_halfsnow')
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_eqMass_liuliu_grauhalfiwc[1,0,:,:,:], server, axes, 1, 
+                                     'EqMass_WSM6_halfgrau')
+        fig.savefig(plotpath+'/RTTOV/'+'FIX_rttov_nativegrid_eqMassWSM6_rsg_s9g9'+'halfiwc.png', dpi=300,transparent=False)   
+        plt.close()
+
+        #--------------- FOR WSM6: one figure for liu:9 and liu:3
+        fig, axes = plt.subplots(nrows=2, ncols=4, constrained_layout=True,figsize=[10,5])
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_liuliu_snowhalfiwc[0,0,:,:,:], server, axes, 0, 
+                                     'WSM6_halfsnow')
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_liuliu_grauhalfiwc[0,0,:,:,:], server, axes, 1, 
+                                     'WSM6_halfgrau')
+        fig.savefig(plotpath+'/RTTOV/'+'FIX_rttov_nativegrid_WSM6_rsg_s3g3'+'halfiwc.png', dpi=300,transparent=False)   
+        plt.close()
+
+        fig, axes = plt.subplots(nrows=2, ncols=4, constrained_layout=True,figsize=[10,5])
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_liuliu_snowhalfiwc[1,0,:,:,:], server, axes, 0, 
+                                     'WSM6_halfsnow')
+        T2P.plot_MHS_row_WRFgrid(lonlon, latlat, tb_as_liuliu_grauhalfiwc[1,0,:,:,:], server, axes, 1, 
+                                     'WSM6_halfgrau')
+        fig.savefig(plotpath+'/RTTOV/'+'FIX_rttov_nativegrid_WSM6_rsg_s9g9'+'halfiwc.png', dpi=300,transparent=False)   
+        plt.close()
+
+        #------------------------------------------------------------------------------------------
+        # All outputs saved in netcdf belong to the same extent data: [ -70, -50, -40, -20]
+        # but what about this other;    
+        extent = [ -64, -50, -40, -20]
+        var_cut_liu    = []
+        var_cut_eqMliu = []
+        for isnow in range(11):
+            rowi1 = []
+            rowi2 = []            
+            for igrau in range(11):
+                var_cut1 = T2P.get_maskedDomain(extent, d_cs,  tb_as_liuliu[isnow,igrau,:,:,:])
+                var_cut2 = T2P.get_maskedDomain(extent, d_cs,  tb_as_eqMass_liuliu[isnow,igrau,:,:,:])
+                rowi1.append(var_cut1)
+                rowi2.append(var_cut2)    
+            var_cut_liu.append(rowi1)
+            var_cut_eqMliu.append(rowi2)
+        var_cut_liu = np.array(var_cut_liu)            
+        var_cut_eqMliu = np.array(var_cut_eqMliu)            
+
+        #------------------------------------------------------------------------------------------
+        # All outputs saved in netcdf belong to the same extent data: [ -70, -50, -40, -20]
+        # For the grausoft sphere plots
+        extent = [ -64, -50, -40, -20]
+        var_cut_grausp    = []
+        var_cut_eqgrausp  = []
+        for isnow in range(11):
+            var_cut_grausp.append( T2P.get_maskedDomain(extent, d_cs,  tb_as_liu_gsf[isnow,0,:,:,:]) )
+            var_cut_eqgrausp.append( T2P.get_maskedDomain(extent, d_cs,  tb_as_eqMass_liu_gsf[isnow,0,:,:,:]) )    
+        var_cut_grausp   = np.array(var_cut_grausp)            
+        var_cut_eqgrausp = np.array(var_cut_eqgrausp)        
+
+        #------------------------------------------------------------------------------------------
+        # I would also like to mask clouds to focus on histograms of scatt! 
+        WRF_intTot_cut = T2P.get_maskedDomain2d(extent, d_cs, WRFvars['WRF_intTot'].data) 
+        cloudmask_WRF  = np.ma.masked_less_equal(WRF_intTot_cut, 0.1) # point model gri
+        cloudmask_obs1 = np.ma.masked_less_equal( d_cs['MHs_domain_obs'][3,:,:]-d_cs['MHs_domain_obs'][4,:,:], 0.2)     # very rought estimate: obs interp grid 
+        # I also test a more restrictive condition to MHS observed: d_cs['MHs_domain_obs'][1,:,:]-280)<0
+        cloudmask_obs2 = np.ma.masked_greater_equal( d_cs['MHs_domain_obs'][1,:,:]-280, 0)
+                
+        #- histogram plots
+        if (do_map_plot == 1):
+            # WSM6
+            T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6')
+            T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6')
+        
+            # eqMass WSM6
+            T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass')
+            T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass')    
+
+            # Adding soft spheres 
+            T2P.make_hists_liu_withgrausp(d_cs, cloudmask_obs2, var_cut_liu, var_cut_grausp , cloudmask_WRF, plotpath, 'WSM6') 
+            T2P.make_hists_liu_withgrausp(d_cs, cloudmask_obs2, var_cut_eqMliu, var_cut_eqgrausp, cloudmask_WRF, plotpath, 'WSM6_eqMass') 
+        
+            T2P.make_hists_liu_Perisnow_grausp(d_cs, cloudmask_obs2, var_cut_eqMliu, var_cut_eqgrausp, cloudmask_WRF, plotpath, 'WSM6_eqMass') 
+            T2P.make_hists_liu_Perisnow_grausp(d_cs, cloudmask_obs2, var_cut_liu, var_cut_grausp, cloudmask_WRF, plotpath, 'WSM6') 
+            
+        
+        # Calculate HDI index at the two differente resolutions
+        cloudmask_WRFgaus = np.ma.masked_less_equal(WRFvars['MHSGaussian_intTot'], 1)      # Gaussian interp grid 
+        HDI_wrfresolution_eqMass, HDI_wrfgaussian_eqMass = T2P.calc_stats( nchan, d_cs, var_cut_eqMliu, 
+                            tb_as_eqMass_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
+        
+        HDI_wrfresolution_WSM6, HDI_wrfgaussian_WSM6 = T2P.calc_stats( nchan, d_cs, var_cut_liu, 
+                            tb_as_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
+        if (do_map_plot == 1):
+            T2P.make_plots_hdi(nchan, plotpath, HDI_wrfresolution_eqMass, HDI_wrfgaussian_eqMass,  'eqMass_WSM6')
+            T2P.make_plots_hdi(nchan, plotpath, HDI_wrfresolution_WSM6, HDI_wrfgaussian_WSM6,  'WSM6')
+        
 
 
 
