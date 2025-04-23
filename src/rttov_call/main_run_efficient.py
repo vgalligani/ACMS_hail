@@ -85,7 +85,38 @@ def eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, experim
     tb =  np.genfromtxt(file_folder+file_)
 
     return tb       
- 
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+def eqmass_exp_one_iwc(folders, outfoldereq, mp_physics, HHtime, instrument, experiment, nchan, i, j, iwc_exp): #where exp='__eqMass_WSM6_rsg'
+
+        # main output folder
+    main_folder = folders['read_out_dir']+mp_physics+'/'
+    subfolder = mp_physics+'_20181110_'+HHtime+'_'+instrument+'_atlas_satzen_input_'
+
+    Expname   = experiment+'_sliu'+str(i)+'_gliu'+str(j)+'__half'+iwc_exp
+    file_folder = main_folder + subfolder+Expname+'/'
+    file_       = 'output_as_tb_'+instrument+experiment+'_sliu'+str(i)+'_gliu'+str(j)
+    tb =  np.genfromtxt(file_folder+file_)
+
+    return tb
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+def eqmass_exp_grausp(folders, outfoldereq, mp_physics, HHtime, instrument, experiment, nchan, i): #where exp='__eqMass_WSM6_rsg'
+
+    # main output folder
+    main_folder = folders['read_out_dir']+mp_physics+'/'
+    subfolder = mp_physics+'_20181110_'+HHtime+'_'+instrument+'_atlas_satzen_input_'
+
+    Expname   = experiment+'_sliu'+str(i)+'grausp'
+    file_folder = main_folder + subfolder+Expname+'/'
+    file_       = 'output_as_tb_'+instrument+Expname
+    tb =  np.genfromtxt(file_folder+file_)
+
+    return tb
+
+
     
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -430,16 +461,24 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, skipProfs, eqMas
         # default cloud overlap settings as above (+renormalization)
         #exp_asrttov_eqmass_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg', nchan)
         exp_asrttov_eqmass_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg', nchan, isnow, igrau)
-    else: 
+    elif (eqMass_do == 0): 
         	#--- WSM6_rsg_s10g2: Dmax PSD consistency with WRF and 
         # read for all liu - liu combinations w/ snow and grau
         # default cloud overlap settings as above (re-normalization)
         #exp_asrttov_rsgliu  = eqmass_exp(folders, outfoldereq, mp_physics,HHtime, instrument, '_WSM6_rsg', nchan)
         exp_asrttov_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_rsg', nchan, isnow, igrau)
+    elif (eqMass_do == 3):
+        exp_asrttov_rsgliu_gsp = eqmass_exp_grausp(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_rsg', nchan, isnow)
+
+    elif (eqMass_do == 4):
+        exp_asrttov_eqmass_rsgliu_gsp = eqmass_exp_grausp(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg_', nchan, isnow)
+
 
     outfile = 'output_tb_'+instrument
-    tb_asrttov_eqMass_rsg   = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
-    tb_asrttov_rsg          = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
+    tb_asrttov_eqMass_rsg  = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan 
+    tb_asrttov_rsg         = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan 
+    tb_asrttov_rsgliu_gsp  = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsgliu_gsp[:]=np.nan
+    tb_asrttov_eqMass_rsgliu_gsp  = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsgliu_gsp[:]=np.nan
 
     counter = 0
     rttov_counter = 0
@@ -455,8 +494,13 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, skipProfs, eqMas
         else:
             if (eqMass_do==1):
                 tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[rttov_counter-1,:]
-            else: 
+            elif (eqMass_do==2): 
                 tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+            elif (eqMass_do==3):	    
+                tb_asrttov_rsgliu_gsp[:,i,j] = exp_asrttov_rsgliu_gsp[rttov_counter-1,:]
+            elif (eqMass_do==4):
+                tb_asrttov_eqMass_rsgliu_gsp[:,i,j] = exp_asrttov_eqmass_rsgliu_gsp[rttov_counter-1,:]
+
             rttov_counter=rttov_counter+1
                     
     # Pre-process like this if MHS                
@@ -470,14 +514,124 @@ def main_Process_Expliu(instrument, HHtime, mp_version, server, skipProfs, eqMas
             gc.collect()
             del tb_asrttov_rsg
             
-        else: 
+        elif (eqMass_do == 1): 
             das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau))
             das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(isnow)+'g'+str(igrau)+'.nc', 'w')
             das1.close()
             gc.collect()
             del tb_asrttov_eqMass_rsg
+        elif (eqMass_do == 3):
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsgliu_gsp[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'grausp')
+            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(isnow)+'grausp.nc', 'w')
+            das1.close()
+            gc.collect()
+            del tb_asrttov_rsgliu_gsp
+
+        elif (eqMass_do == 4):
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsgliu_gsp[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'grausp')
+            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(isnow)+'grausp.nc', 'w')
+            das1.close()
+            gc.collect()
+            del tb_asrttov_eqMass_rsgliu_gsp
+
 
     return
+
+def main_Process_Expliu_iwc(instrument, HHtime, mp_version, server, skipProfs, eqMass_do, isnow, igrau, iwc_name):
+
+    if (mp_version == 6):
+      mp_physics = 'WRF-WSM6'
+
+    plotpath, folders = config_folders(server)
+
+    # Select server and folder locations
+    #--------------------------------------------------------------------------
+    if 'yakaira' in server:
+        upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
+        sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
+        processedFolder = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/Processed/'+mp_physics
+
+    elif 'cnrm' in server:
+        upfolder    = '/home/galliganiv/'
+        sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
+        processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+
+    # Select instrument configurations
+    #--------------------------------------------------------------------------
+    if 'MHS' in instrument:
+        nchan = 5
+    elif 'AMSR' in instrument:
+        nchan = 14
+
+    #--------------------------------------------------------------------------
+    # server dependent files    
+    from package_functions import pressure2height
+    import package_functions as funs
+
+    if mp_version == 6:
+        mp_physics = 'WRF-WSM6'
+        ncfile     = upfolder+'WRFOUT/WSM6_domain3_NoahMP/wrfout_d02_2018-11-10_'+HHtime+':00'
+        ncdata     = Dataset(ncfile,'r')
+        [qr, qs, qi, qc, qg, qr_int, qs_int, qi_int, qc_int, qg_int] = funs.get_q_ints6(ncdata)
+        int_titles = ['qr','qc','qi','qs','qg']
+
+    flag_name = 'rttov14_'+instrument+'_'+mp_physics+'_2018-11-10_'+HHtime
+
+    # RTTOVout folders
+    outfoldereq       = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input__eqmassWSM6_'
+
+    #------        
+    # Load all profiles
+    A    = read_wrf(ncfile)
+    toti = A['XLONG'].shape[0]
+    totj = A['XLONG'].shape[1]
+    lats         = np.zeros(A['XLONG'].shape); lats[:]=np.nan
+    lons         = np.zeros(A['XLONG'].shape); lons[:]=np.nan
+    rows, cols = A['XLONG'].shape
+    shape_ = A['XLONG'].shape
+
+    if (eqMass_do == 1):
+        exp_asrttov_eqmass_rsgliu = eqmass_exp_one_iwc(folders, outfoldereq, mp_physics, HHtime, instrument, '_eqMass_WSM6_rsg', nchan, isnow, igrau, iwc_name)
+    elif (eqMass_do == 0):
+        exp_asrttov_rsgliu = eqmass_exp_one_iwc(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_rsg', nchan, isnow, igrau, iwc_name)
+
+    tb_asrttov_eqMass_rsg  = np.zeros( (nchan,rows,cols) );   tb_asrttov_eqMass_rsg[:]=np.nan
+    tb_asrttov_rsg         = np.zeros( (nchan,rows,cols) );   tb_asrttov_rsg[:]=np.nan
+    counter = 0
+    rttov_counter = 0
+
+    for idx, (i,j) in enumerate(np.ndindex(shape_)):
+        lats[i,j] = A['XLAT'].data[i,j]
+        lons[i,j] = A['XLONG'].data[i,j]
+
+        if idx in skipProfs:
+            tb_asrttov_eqMass_rsg[:,i,j] = np.nan
+            tb_asrttov_rsg[:,i,j] = np.nan
+
+        else:
+            if (eqMass_do==1):
+                tb_asrttov_eqMass_rsg[:,i,j] = exp_asrttov_eqmass_rsgliu[rttov_counter-1,:]
+            elif (eqMass_do==2):
+                tb_asrttov_rsg[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+
+
+    # Pre-process like this if MHS                
+    if 'MHS' in instrument:
+        if (eqMass_do == 0):
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau)+iwc_name)
+            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(isnow)+'g'+str(igrau)+iwc_name+'.nc', 'w')
+            das1.close()
+            gc.collect()
+            del tb_asrttov_rsg
+
+        elif (eqMass_do == 1):
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau)+iwc_name)
+            das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(isnow)+'g'+str(igrau)+iwc_name+'.nc', 'w')
+            das1.close()
+            gc.collect()
+
+    return
+
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -492,13 +646,28 @@ def main(isnow, igrau):
     main_Process_Expliu('MHS', '20:30', 6, server, skipProfs, eqMass_do=1, isnow=isnow, igrau=igrau)
     print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
 
+def main_sp(isnow,eqMass):
+    server = 'yakaira'
+    skipProfs = filter_pixels_monotonic(6, '20:30', server)
+    main_Process_Expliu('MHS', '20:30', 6, server, skipProfs, eqMass_do=eqMass, isnow=isnow, igrau=0)
+    print('Finished running for isnow: '+str(isnow))
+
+def main_halfiwc(isnow,igrau,eqMass,iwcname):
+    server = 'yakaira'
+    skipProfs = filter_pixels_monotonic(6, '20:30', server)
+    main_Process_Expliu_iwc('MHS', '20:30', 6, server, skipProfs, eqMass_do=eqMass, isnow=isnow, igrau=igrau, iwc_name=iwcname)
+    print('Finished running for isnow: '+str(isnow))
+
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python your_script.py <isnow> <igrau>")
+    if len(sys.argv) < 5:
+        print("Usage: python your_script.py <isnow> <igrau> <?>")
         sys.exit(1)
     
     isnow = int(sys.argv[1])   # or float() if needed
     igrau = int(sys.argv[2])   # or float() if needed
-    main(isnow, igrau)
-
+    ieqMass =  int(sys.argv[3]) 
+    iwcname =  str(sys.argv[4]) 
+    #main(isnow, igrau)
+    #main_sp(isnow,ieqMass)
+    main_halfiwc(isnow, igrau, ieqMass, iwcname)
         

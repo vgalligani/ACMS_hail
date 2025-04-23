@@ -66,16 +66,22 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
 
     plotpath, folders = config_folders(server)
     
+    if mp_version == 6:
+        mp_physics = 'WRF-WSM6'
+        nchan=5
+        
     # Select server and folder locations
     #--------------------------------------------------------------------------
     if 'yakaira' in server: 
         upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
         sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
+        processedFolder = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/Processed/'+mp_physics
                 
     elif 'cnrm' in server:
         upfolder    = '/home/galliganiv/'   
         sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
-            
+        processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+  
     # Select instrument configurations
     #--------------------------------------------------------------------------
     if 'MHS' in instrument: 
@@ -89,14 +95,8 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
     import package_functions as funs
 
     print('Statistics and plots')
-    
-    if mp_version == 6:
-        mp_physics = 'WRF-WSM6'
-        nchan=5
-        
+            
     # 1st Read nc files 
-    processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
-    
     #------------------------------------------------------------------------------------------
     # WRF data 
     outfile   = 'output_tb_'+instrument
@@ -120,41 +120,56 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
         # WRF-WSM6 consistent experiment (Repeat with eqMass and all liu-liu combinations)
         # READ NETCDFs
         tb_as_liuliu = [] 
+        tb_as_liuliu_gaus = []
         for i in range(11):
             rowi = []
+            rowig = [] 
             for  j in range(11):
                 expname     = 'rttov_processed_allsky_rsg_s'+str(i)+'g'+str(j)+'.nc'
                 d_liuliu    = xr.open_dataset(processedFolder+'/'+outfile+expname)
                 var         = d_liuliu['rttov_as'].values
+                var_gaus    = d_liuliu['rttov_as_Gaussianantennasigma_'].values
                 rowi.append(var)
+                rowig.append(var_gaus)
+            tb_as_liuliu_gaus.append(rowig)
             tb_as_liuliu.append(rowi)
         tb_as_liuliu = np.array(tb_as_liuliu)
-                    
+        tb_as_liuliu_gaus = np.array(tb_as_liuliu_gaus)
+         
+        #if (do_map_plot == 1):
+        T2P.make_obsdummy_liuliu_maps(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data, 
+                                      server, plotpath) 
         #------------------------------------------------------------------------------
         if (do_map_plot == 1):
             for igrau in range(11):
-                title = 'rttov_nativegrid_WSM6_rsg_allisnow_wigrau_'
-                T2P.make_all_liuliu_maps(lonlon, latlat, tb_as_liuliu[:,igrau,:,:], 'cnrm', igrau, plotpath, title) 
+                T2P.make_all_liuliu_maps(lonlon, latlat, tb_as_liuliu[:,igrau,:,:], server, igrau, plotpath) 
                 
         #------------------------------------------------------------------------------------------
         # eq. Mass WRF-WSM6 consistent experiment 
         # READ NETCDFs
-        tb_as_eqMass_liuliu = [] 
+        tb_as_eqMass_liuliu      = [] 
+        tb_as_eqMass_liuliu_gaus = []
         for i in range(11):
             rowi = []
+            rowig = []
             for  j in range(11):
                 expname     = 'rttov_processed_allsky_eqMass_rsg_s'+str(i)+'g'+str(j)+'.nc'
                 d_liuliu    = xr.open_dataset(processedFolder+'/'+outfile+expname)
                 var         = d_liuliu['rttov_as'].values
+                var_gaus    = d_liuliu['rttov_as_Gaussianantennasigma_'].values
                 rowi.append(var)
+                rowig.append(var_gaus)
+                
             tb_as_eqMass_liuliu.append(rowi)
-        tb_as_eqMass_liuliu = np.array(tb_as_eqMass_liuliu)            
-    
+            tb_as_eqMass_liuliu_gaus.append(rowig)
+        tb_as_eqMass_liuliu      = np.array(tb_as_eqMass_liuliu)            
+        tb_as_eqMass_liuliu_gaus = np.array(tb_as_eqMass_liuliu_gaus)            
+   
         #------------------------------------------------------------------------------
         if (do_map_plot == 1):
             for igrau in range(11):
                 title = 'FIX_rttov_nativegrid_eqMassWSM6_rsg_allisnow_wigrau_'
-                T2P.make_all_liuliu_maps(lonlon, latlat, tb_as_eqMass_liuliu[:,igrau,:,:], 'cnrm', igrau, plotpath, title)     
+                T2P.make_all_liuliu_maps(lonlon, latlat, tb_as_eqMass_liuliu[:,igrau,:,:], server, igrau, plotpath, title)     
 
     #------------------------------------------------------------------------------------------
     # All outputs saved in netcdf belong to the same extent data: [ -70, -50, -40, -20]
@@ -183,15 +198,45 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
     # I also test a more restrictive condition to MHS observed: d_cs['MHs_domain_obs'][1,:,:]-280)<0
     cloudmask_obs2 = np.ma.masked_greater_equal( d_cs['MHs_domain_obs'][1,:,:]-280, 0)
            
-    # WSM6
-    T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6_fix')
-    T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6_fix')
+    #- histogram plots
+    if (do_map_plot == 1):
+        # WSM6
+        T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6')
+        T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_liu, cloudmask_WRF, plotpath, 'WSM6')
     
-    # eqMass WSM6
-    T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass_fix')
-    T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass_fix')    
+        # eqMass WSM6
+        T2P.make_hists_liu(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass')
+        T2P.make_hists_liu_Perisnow(d_cs, cloudmask_obs2, var_cut_eqMliu, cloudmask_WRF, plotpath, 'WSM6_eqMass')    
     
-    #breakpoint() 
+    # Calculate HDI index at the two differente resolutions
+    cloudmask_WRFgaus = np.ma.masked_less_equal(WRFvars['MHSGaussian_intTot'], 1)      # Gaussian interp grid 
+    HDI_wrfresolution_eqMass, HDI_wrfgaussian_eqMass = T2P.calc_stats( nchan, d_cs, var_cut_eqMliu, 
+                        tb_as_eqMass_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
+    
+    HDI_wrfresolution_WSM6, HDI_wrfgaussian_WSM6 = T2P.calc_stats( nchan, d_cs, var_cut_liu, 
+                        tb_as_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
+    if (do_map_plot == 1):
+        T2P.make_plots_hdi(nchan, plotpath, HDI_wrfresolution_eqMass, HDI_wrfgaussian_eqMass,  'eqMass_WSM6')
+        T2P.make_plots_hdi(nchan, plotpath, HDI_wrfresolution_WSM6, HDI_wrfgaussian_WSM6,  'WSM6')
+    
+    breakpoint() 
+
+
+
+    # and make plots
+    #make_plots_hdi(nchan, plotpath, HDI_wrfresolution, HDI_wrfgaussian)
+        
+
+
+    # Calculate HDI index at the two differente resolutions maybe choose the least diferente and 
+
+
+
+    
+    # difference between gauss and not gauss? 
+    
+    
+
 
     #------------------------------------------------------------------------------------------
 
@@ -253,7 +298,7 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
 #--------------------------------------------
 def main():
     
-    server     = 'cnrm'
+    server     = 'yakaira'
     instrument = 'MHS'
     HHtime     = '20:30'
     mp_version = 6

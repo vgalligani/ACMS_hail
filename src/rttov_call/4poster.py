@@ -59,7 +59,7 @@ plt.rcParams['ytick.labelsize']=18
 
 #----------------------------------------------------------------------------------------------------
 # footprint operator     
-def plot_footprint(server, d_cs): 
+def plot_footprint(server, d_cs, exp_name): 
     
     lons = d_cs['wrf_lon'].data
     lats = d_cs['wrf_lat'].data
@@ -128,9 +128,47 @@ def plot_footprint(server, d_cs):
     #-----------------------------------------------------------------------------
     domain_mhs_obs = da_subset.data
     domain_mhs_obs = domain_mhs_obs[:,:Nrlimitswath,:].copy()
-
     pointInterpTB = T2P.get_pointdataInterp(lats, lons, tb0, da_subset, Nrlimitswath) 
-    T2P.get_footprintVals_poster(lats, lons, tb0, da_subset, Nrlimitswath, domain_mhs_obs, plotpath, server, 'as_test') 
+
+        
+    # rttov simualted data: average within footprint  
+    #--------------------------------------------------------------------------
+    #T2P.get_footprintVals_poster(lats, lons, tb0, da_subset, Nrlimitswath, domain_mhs_obs, plotpath, server, 'as_test') 
+    indices_circle, distances2center = T2P.mhs_simplefootprint(da_subset['lon'].data[:Nrlimitswath,:].ravel(), 
+                        da_subset['lat'].data[:Nrlimitswath,:].ravel(), 
+                        lons.ravel(), lats.ravel())
+    indices_2d = [np.unravel_index(idx, lons.shape) for idx in indices_circle]
+    
+    # By looping over the plots below I choose: the following examples: 1478, 1474
+    T2P.check_footprint_interpsMap_sim(lons, lats, indices_2d, lons, 
+                               lats, tb0, 
+                               plotpath, server, 1478) 
+    T2P.check_footprint_interpsMap_sim(lons, lats, indices_2d, lons, 
+                               lats, tb0, 
+                               plotpath, server, 1475) 
+    T2P.check_footprint_interpsMap_sim(lons, lats, indices_2d, lons, 
+                               lats, tb0, 
+                               plotpath, server, 1474) 
+    
+    T2P.plot_impact_footprint(lats, lons, tb0, da_subset, Nrlimitswath, domain_mhs_obs,
+                              plotpath, server, exp_name, 1478) 
+    T2P.plot_impact_footprint(lats, lons, tb0, da_subset, Nrlimitswath, domain_mhs_obs,
+                              plotpath, server, exp_name, 1475) 
+    T2P.plot_impact_footprint(lats, lons, tb0, da_subset, Nrlimitswath, domain_mhs_obs,
+                              plotpath, server, exp_name, 1474) 
+
+    # for iindex in range(1100,2100):
+    #     if len(lons[indices_2d[iindex][0], indices_2d[iindex][1]])>0:
+    #         fig, axes = plt.subplots(nrows=1, ncols=1, constrained_layout=True,figsize=[8,8])    
+    #         plt.scatter(lons[indices_2d[iindex][0], indices_2d[iindex][1]],
+    #                     lats[indices_2d[iindex][0], indices_2d[iindex][1]], s=50, 
+    #                     marker='o', alpha=0.5, color='magenta')
+    #         plt.title(str(iindex))
+    #         plt.xlim([-66,-62])    #[-68,-62]); 
+    #         plt.ylim([-34.5,-31])    # plt.ylim([-34.5,-31])    
+    #         plt.pcolormesh(lons, lats, tb0[2,:,:], vmin=200, vmax=300,
+    #                                      alpha=0.8)
+            
 
     return
 
@@ -138,18 +176,34 @@ def plot_footprint(server, d_cs):
 #--------------------------------------------
 def main():
     
-    server     = 'cnrm'
+    server     = 'yakaira'
     instrument = 'MHS'
     HHtime     = '20:30'
     mp_version = 6
     mp_physics = 'WRF-WSM6'
 
-    processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+    if mp_version == 6:
+        mp_physics = 'WRF-WSM6'
+        nchan=5
+        
+    # Select server and folder locations
+    #--------------------------------------------------------------------------
+    if 'yakaira' in server: 
+        upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
+        sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
+        processedFolder = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/Processed/'+mp_physics
+                
+    elif 'cnrm' in server:
+        upfolder    = '/home/galliganiv/'   
+        sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
+        processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+              
     outfile   = 'output_tb_'+instrument
 
     expname     = 'rttov_processed_allsky_eqMass_rsg_s10g3.nc'
     d_liuliu    = xr.open_dataset(processedFolder+'/'+outfile+expname)
-    plot_footprint(server, d_liuliu)
+    #plot_footprint(server, d_liuliu, 'eqMass_rsg_s10g3')
+
 
 
 if __name__ == "__main__":

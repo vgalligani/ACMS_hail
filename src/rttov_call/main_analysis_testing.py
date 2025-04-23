@@ -182,14 +182,6 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
     HDI_wrfresolution, HDI_wrfgaussian = T2P.calc_stats( nchan, d_cs, var_cut_eqMliu, 
                         tb_as_eqMass_liuliu_gaus, cloudmask_obs2, cloudmask_WRF, cloudmask_WRFgaus)
 
-    # and make plots
-    make_plots_hdi(nchan, plotpath, HDI_wrfresolution, HDI_wrfgaussian)
-    
-
-
-    # Calculate HDI index at the two differente resolutions
-
-
 
 
     #--
@@ -243,7 +235,7 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
                 
                 
     #------------------------------------------------------    
-    plot as a functoipn of freqwuencyu deltaTB due to cloud-clear                      
+    #plot as a functoipn of freqwuencyu deltaTB due to cloud-clear                      
                 
     T2P.plot_MHS_colorbarlims_poster(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data,'testing_poster_obs',
                               50, 300, plotpath, 'cnrm','testing_poster_obs')
@@ -255,7 +247,7 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
                  'testing_poster', plotpath, 'cnrm', 'testing_poster')
 
 
-d(lonlon, latlat, tbtb, title, vminn, vmaxx, plotpath, server, exp):
+     #d(lonlon, latlat, tbtb, title, vminn, vmaxx, plotpath, server, exp):
     # fig, axes = plt.subplots(nrows=1, ncols=3, constrained_layout=True,figsize=[15,7])
     # pcm=axes[0].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data[0,:,:]);
     # plt.colorbar(pcm, ax=axes[0]); axes[0].set_title('OBS')
@@ -269,8 +261,6 @@ d(lonlon, latlat, tbtb, title, vminn, vmaxx, plotpath, server, exp):
     # also do soft spehre! 
     
 
-
-    return
 
 
 
@@ -287,93 +277,6 @@ d(lonlon, latlat, tbtb, title, vminn, vmaxx, plotpath, server, exp):
 
 
 
-
-    # fig, axes = plt.subplots(nrows=1, ncols=3, constrained_layout=True,figsize=[15,7])
-    # pcm=axes[0].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data[0,:,:]);
-    # plt.colorbar(pcm, ax=axes[0]); axes[0].set_title('OBS')
-    # pcm=axes[1].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], tb_as_eqMass_liuliu_gaus[0,0,0,:,:]); 
-    # plt.colorbar(pcm, ax=axes[1]); axes[1].set_title('sim')
-    # pcm=axes[2].pcolormesh(d_cs['MHS_lon'], d_cs['MHS_lat'], d_cs['MHs_domain_obs'].data[0,:,:] - tb_as_eqMass_liuliu_gaus[0,0,0,:,:]); 
-    # plt.colorbar(pcm, ax=axes[2]); axes[2].set_title('diff')
-    # for i in range(3):
-    #     axes[i].set_ylim([-35,-30])
-    #     axes[i].set_xlim([-70,-60])
-        
-        
-    #     meansims[0,i] = np.round( np.nanmean( varsim1.flatten() ) ,2) 
-    #     meansims[1,i] = np.round( np.nanmean( varsim2.flatten() ) ,2) 
-    #     meansims[2,i] = np.round( np.nanmean( varsim3.flatten() ) ,2) 
-    #     meanobs.append( np.round( np.nanmean( varobs.flatten() ), 2))
-    
-    #     meanrms[0,i] = np.round( np.nanstd( varsim1.flatten() ) ,2) 
-    #     meanrms[1,i] = np.round( np.nanstd( varsim2.flatten() ) ,2) 
-    #     meanrms[2,i] = np.round( np.nanstd( varsim3.flatten() ) ,2) 
-    #     rmsobs.append( np.round( np.nanstd( varobs.flatten() ), 2))
-        
-    #     string = 'Mean (std) \n'
-    #     string = string + 'rttov_cs footprint av.: ' + str( meansims[0,i] ) + 'K ('+ str( meanrms[0,i] ) + ') \n'
-    #     string = string + 'rttov_cs (model grid): ' + str( meansims[1,i] ) + 'K ('+ str( meanrms[1,i] ) + ') \n'
-    #     string = string + 'rttov_cs (nearest interp): ' + str( meansims[2,i] ) + 'K ('+ str( meanrms[2,i] ) + ') \n'
-    #     string = string + 'obs: ' + str( np.nanmean( varobs.flatten() )) + 'K ('+ str( rmsobs[i] ) + ') \n'
-        
-    #     axes[i].text(.02, .98, string, ha='left', va='top', bbox=dict(facecolor='gray', 
-    #                     edgecolor='black', boxstyle='round') ,  transform=axes[i].transAxes)
-    
-    # axes[0].set_xlabel('Brightness Temperature (K)')
-    # plt.suptitle('Sims w/ CloudFlag (qtot_int < 1)')
-    # fig.savefig(plotpath+'/RTTOV/'+'Stats_clearsky_qtotthresholds_init_tests_cloud1.png', dpi=300,transparent=False)    
-    
-    
-    
-
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-#main_Process_exp('MHS', '20:30', 6, 'cnrm')
-
-
-
-    
-    
-    
-    
-#--------------------------------------------
-def main():
-    
-    server     = 'cnrm'
-    instrument = 'MHS'
-    HHtime     = '20:30'
-    mp_version = 6
-    main_Process_exp('MHS', '20:30', 6, server)
-
-
-if __name__ == "__main__":
-    main()
-
-# =============================================================================
-#         #----- SIMPLE PLOTS of qxs for model cs 
-#         # Plot qxs maps 
-#         T2P.plot_test_qxints(dwrf, ds, lats, lons)
-#         # Plot Tbs maps 
-#         data_footprint = np.ma.masked_greater_equal(dwrf['MHSfootprintmean_intTot'], 1)
-#         data_regrid    = np.ma.masked_greater_equal(dwrf['MHS_intTot'], 1)
-#         cmaps = T2P.GMI_colormap() 
-#         prov  = np.genfromtxt("/home/galliganiv/ACMS_hail/src/provincias.txt", delimiter='')      
-#         VAR   = np.ma.array(ds['rttov_cs_footprintmean'].data[0,:,:], mask=data_footprint.mask) 
-#         fig = plt.figure(figsize=[8,8])
-#         plt.pcolormesh(ds['MHS_lon'], ds['MHS_lat'], VAR, cmap=cmaps['turbo_r'], 
-#                                  shading='auto') 
-#         plt.xlim([-65.5,-62])   #[-68,-62]); 
-#         plt.ylim([-34.5,-31])   #[-36,-31])
-#         plt.plot(prov[:,0],prov[:,1],color='w')
-#         # Diff in clear sky map        
-#         VARdiff = np.ma.array( ds['MHs_domain_obs'].data[0,:,:]-VAR, mask=data_footprint.mask) 
-#         fig = plt.figure(figsize=[8,8])
-#         plt.pcolormesh(ds['MHS_lon'], ds['MHS_lat'], VARdiff, cmap=cmaps['turbo_r'], 
-#                                  shading='auto') 
-#         plt.xlim([-65.5,-62])   #[-68,-62]); 
-#         plt.ylim([-34.5,-31])   #[-36,-31])
-#         plt.plot(prov[:,0],prov[:,1],color='w'); plt.colorbar()
-# =============================================================================
 
 
 
