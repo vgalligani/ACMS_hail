@@ -641,13 +641,18 @@ def main_Process_Expliu_iwc(instrument, HHtime, mp_version, server, skipProfs, e
 #main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
 
 #--------------------------------------------
-def main(isnow, igrau):
+def main(isnow, igrau, eqMass_do):
     
     server = 'yakaira'
     skipProfs = filter_pixels_monotonic(6, '20:30', server)   
-    main_Process_Expliu('MHS', '20:30', 6, server, skipProfs, eqMass_do=1, isnow=isnow, igrau=igrau)
+    main_Process_Expliu('MHS', '20:30', 6, server, skipProfs, eqMass_do=eqMass_do, isnow=isnow, igrau=igrau)
     print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
 
+def main_basic():
+    server = 'yakaira'
+    main_Process_cs_andWRF('MHS', '20:30', 6, server)
+    print('Finished clear sky and wrf grids')
+    
 def main_sp(isnow,eqMass):
     server = 'yakaira'
     skipProfs = filter_pixels_monotonic(6, '20:30', server)
@@ -669,7 +674,8 @@ if __name__ == "__main__":
     igrau = int(sys.argv[2])   # or float() if needed
     ieqMass =  int(sys.argv[3]) 
     iwcname =  str(sys.argv[4]) 
-    #main(isnow, igrau)
+    main_basic()
+    #main(isnow, igrau, ieqMass)
     #main_sp(isnow,ieqMass)
-    main_halfiwc(isnow, igrau, ieqMass, iwcname)
+    #main_halfiwc(isnow, igrau, ieqMass, iwcname)
         
