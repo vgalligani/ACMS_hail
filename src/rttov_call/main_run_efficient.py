@@ -105,7 +105,7 @@ def eqmass_exp_one_iwc(folders, outfoldereq, mp_physics, HHtime, instrument, exp
 #------------------------------------------------------------------------------
 def eqmass_exp_one_noiwc(folders, outfoldereq, mp_physics, HHtime, instrument, experiment, nchan, i, name): #where exp='__eqMass_WSM6_rsg'
 
-        # main output folder
+    # main output folder
     main_folder = folders['read_out_dir']+mp_physics+'/'
     subfolder = mp_physics+'_20181110_'+HHtime+'_'+instrument+'_atlas_satzen_input_'
 
@@ -124,9 +124,11 @@ def eqmass_exp_one_iwc_grausp(folders, outfoldereq, mp_physics, HHtime, instrume
     main_folder = folders['read_out_dir']+mp_physics+'/'
     subfolder = mp_physics+'_20181110_'+HHtime+'_'+instrument+'_atlas_satzen_input_'
 
-    Expname   = experiment+'_sliu'+str(i)+'grausp__half'+iwc_exp
+    ##Expname   = experiment+'__sliu'+str(i)+'grausp__half'+iwc_exp
+    Expname   = experiment+'__sliu'+str(i)+'grausp_'+iwc_exp
     file_folder = main_folder + subfolder+Expname+'/'
-    file_       = 'output_as_tb_'+instrument+experiment+'_sliu'+str(i)+'grausp'
+    ##file_       = 'output_as_tb_'+instrument+experiment+'__sliu'+str(i)+'grausp'
+    file_       = 'output_as_tb_'+instrument+experiment+'__sliu'+str(i)+'grausp'
     tb =  np.genfromtxt(file_folder+file_)
 
     return tb
@@ -848,14 +850,14 @@ def main_Process_Expliu_iwc_grausp(instrument, HHtime, mp_version, server, skipP
     # Pre-process like this if MHS                
     if 'MHS' in instrument:
         if (eqMass_do == 0):
-            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau)+iwc_name)
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'grausp'+iwc_name)
             das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_rsg_s'+str(isnow)+'grausp'+iwc_name+'.nc', 'w')
             das1.close()
             gc.collect()
             del tb_asrttov_rsg
 
         elif (eqMass_do == 1):
-            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau)+iwc_name)
+            das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov_eqMass_rsg[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'grausp'+iwc_name)
             das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_eqMass_rsg_s'+str(isnow)+'grausp'+iwc_name+'.nc', 'w')
             das1.close()
             gc.collect()
@@ -900,7 +902,7 @@ def main_halfiwc_grausp(isnow,eqMass,iwcname):
     main_Process_Expliu_iwc_grausp('MHS', '20:30', 6, server, skipProfs, eqMass_do=eqMass, isnow=isnow, iwc_name=iwcname)
     print('Finished running for isnow: '+str(isnow))
 
-def main_noiwc(isnow,eqMass, iiname):
+def main_noiwc(isnow, eqMass, iiname):
     server = 'yakaira'
     skipProfs = filter_pixels_monotonic(6, '20:30', server)
     main_Process_Expliu_noiwc('MHS', '20:30', 6, server, skipProfs, eqMass_do=eqMass, isnow=isnow, optname=iiname)
@@ -916,13 +918,37 @@ def main_noiwc(isnow,eqMass, iiname):
 #main_halfiwc(3, 3, 0, 'rain_iwc')  # ojo que aca cambien para que sea rain
 #main_halfiwc(3, 3, 1, 'rain_iwc')  # ojo que aca cambien para que sea rain
 
-ieqMass = 1
-#main_noiwc(9, ieqMass, 'onlyrain')  # ojo que aca cambien para que sea rain
-main_noiwc(9, ieqMass, 'onlyice')  # ojo que aca cambien para que sea rain
-main_noiwc(9, ieqMass, 'onlysnow')  # ojo que aca cambien para que sea rain
-main_noiwc(3, ieqMass, 'onlysnow')  # ojo que aca cambien para que sea rain
-main_noiwc(9, ieqMass, 'onlygrau')  # ojo que aca cambien para que sea rain
-main_noiwc(3, ieqMass, 'onlygrau')  # ojo que aca cambien para que sea rain
+# =============================================================================
+# main_halfiwc(9, 9, 1, 'grau_iwc')  # ojo que aca cambien para que sea rain
+# main_halfiwc(3, 3, 1, 'grau_iwc')  # ojo que aca cambien para que sea rain
+# 
+# main_halfiwc(9, 9, 1, 'snow_iwc')  # ojo que aca cambien para que sea rain
+# main_halfiwc(3, 3, 1, 'snow_iwc')  # ojo que aca cambien para que sea rain
+# =============================================================================
+
+#main_halfiwc_grausp(3, 0, 'onlygrau')
+main_halfiwc_grausp(3, 1, 'onlygrau')
+
+
+# main_halfiwc_grausp(9, 1, 'grau_iwc')
+# main_halfiwc_grausp(3, 1, 'grau_iwc')
+# main_halfiwc_grausp(9, 1, 'snow_iwc')
+# main_halfiwc_grausp(3, 1, 'snow_iwc')
+
+ # to this too: 
+##main_halfiwc(9, 9, 1, 'rain_iwc')  # ojo que aca cambien para que sea rain
+##main_halfiwc(3, 3, 1, 'rain_iwc')  # ojo que aca cambien para que sea rain
+
+# main_noiwc(9, 1, 'noiwc')
+# main_noiwc(3, 1, 'noiwc')
+
+# ieqMass = 1
+# main_noiwc(9, ieqMass, 'onlyrain')  # ojo que aca cambien para que sea rain
+# main_noiwc(9, ieqMass, 'onlyice')  # ojo que aca cambien para que sea rain
+# main_noiwc(9, ieqMass, 'onlysnow')  # ojo que aca cambien para que sea rain
+# main_noiwc(3, ieqMass, 'onlysnow')  # ojo que aca cambien para que sea rain
+# main_noiwc(9, ieqMass, 'onlygrau')  # ojo que aca cambien para que sea rain
+# main_noiwc(3, ieqMass, 'onlygrau')  # ojo que aca cambien para que sea rain
 
 
 # if __name__ == "__main__":

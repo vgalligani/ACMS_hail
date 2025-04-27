@@ -353,14 +353,18 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
     do_map_plot = 1
     if (do_map_plot == 1):  
         # Plot IWC sensitivity maps     (only snow,rain,ice, grau)    
-        T2P.make_maps_iwc_onlyexps(lonlon, latlat, tb_as_eqMass_liuliu, tb_eqMass_liuliu_onlysnow, tb_eqMass_liuliu_onlygrau, tb_eqMass_liuliu_onlyrain, tb_eqMass_liuliu_onlyice , plotpath, 'eqMassWSM6', server)
+        T2P.make_maps_iwc_onlyexps(lonlon, latlat, tb_as_eqMass_liuliu, tb_eqMass_liuliu_onlysnow, 
+                                   tb_eqMass_liuliu_onlygrau, tb_eqMass_liuliu_onlyrain, tb_eqMass_liuliu_onlyice , plotpath, 'eqMassWSM6', server)
 
-        T2P.make_maps_iwc_onlyexps(lonlon, latlat, tb_as_liuliu, tb_WSM6_liuliu_onlysnow, tb_WSM6_liuliu_onlygrau, tb_WSM6_liuliu_onlyrain, tb_WSM6_liuliu_onlyice, plotpath, 'WSM6', server)
+        T2P.make_maps_iwc_onlyexps(lonlon, latlat, tb_as_liuliu, tb_WSM6_liuliu_onlysnow, tb_WSM6_liuliu_onlygrau, 
+                                   tb_WSM6_liuliu_onlyrain, tb_WSM6_liuliu_onlyice, plotpath, 'WSM6', server)
 
         # Plot IWC sensitivity difference maps         
         print('Read WRF-eqMass and WSM6 liu iwc half testing')
-        T2P.make_DIFF_maps_iwc_onlyexps(lonlon, latlat, tb_as_eqMass_liuliu, tb_eqMass_liuliu_onlysnow, tb_eqMass_liuliu_onlygrau, tb_eqMass_liuliu_onlyrain, tb_eqMass_liuliu_onlyice , plotpath, 'eqMassWSM6', server)
-        T2P.make_DIFF_maps_iwc_onlyexps(lonlon, latlat, tb_as_liuliu, tb_WSM6_liuliu_onlysnow, tb_WSM6_liuliu_onlygrau, tb_WSM6_liuliu_onlyrain, tb_WSM6_liuliu_onlyice, plotpath, 'WSM6', server)
+        T2P.make_DIFF_maps_iwc_onlyexps(lonlon, latlat, tb_as_eqMass_liuliu, tb_eqMass_liuliu_onlysnow, 
+                                        tb_eqMass_liuliu_onlygrau, tb_eqMass_liuliu_onlyrain, tb_eqMass_liuliu_onlyice , plotpath, 'eqMassWSM6', server)
+        T2P.make_DIFF_maps_iwc_onlyexps(lonlon, latlat, tb_as_liuliu, tb_WSM6_liuliu_onlysnow, tb_WSM6_liuliu_onlygrau, 
+                                        tb_WSM6_liuliu_onlyrain, tb_WSM6_liuliu_onlyice, plotpath, 'WSM6', server)
         
 
     do_map_plot = 0
@@ -380,10 +384,8 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
         T2P.make_DIFF_maps_iwc_exps(lonlon, latlat, tb_as_liuliu, tb_as_liuliu_snowhalfiwc, tb_as_liuliu_grauhalfiwc, 
                        tb_as_liuliu_grausnowhalfiwc, tb_as_liuliu_noiwc, tb_as_liuliu_rainhalfiwc, plotpath, 'WSM6', server)
         
-        
-        
-        
-        
+                
+    #------------------------------------------------------------------------------------------
     #------------------------------------------------------------------------------------------
     # Get with a smaller domain! 
     var_cut_halfgrau, lon_wrf_cut, lat_wrf_cut = cut_extent_2snowsample(2, d_cs, tb_as_liuliu_grauhalfiwc)
@@ -391,7 +393,6 @@ def main_Process_exp(instrument, HHtime, mp_version, server):
     var_cut_eqMass_halfsnow, _, _  = cut_extent_2snowsample(2, d_cs, tb_as_eqMass_liuliu_snowhalfiwc)
     var_cut_eqMass_halfgrau, _, _  = cut_extent_2snowsample(2, d_cs, tb_as_eqMass_liuliu_grauhalfiwc)
 
-    breakpoint() 
     #------------------------------------------------------------------------------------------            
     #------------------------------------------------------------------------------------------
     # Get cloud masks in case i want to keep only clouds 
