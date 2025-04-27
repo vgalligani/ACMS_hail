@@ -269,7 +269,7 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
     # Save some aux WRF data to dataframe
     qinttot = np.nansum( [qi_int.data, qc_int.data, qs_int.data,  
                         qr_int.data, qg_int.data], axis=0 )
-            
+    
     counter = 0
     rttov_counter = 0
     for i in range(A['XLONG'].shape[0]): 
@@ -309,7 +309,7 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
                 
                 tb_asrttov_test[:,i,j] = WSM6_file_as_test[rttov_counter-1,:]
                 tb_csrttov[:,i,j]      = WSM6_file[rttov_counter-1,:]
-            rttov_counter=rttov_counter+1
+            #rttov_counter=rttov_counter+1
                 
             
     #----- SIMPLE PLOTS: make plots with integrated qx forzen y rain, y todos los canales
@@ -321,10 +321,10 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
 
         # Plot simulation (WRF resolution) and Observations (real resolution)
         ds = T2P.MHS_cs_sims(lons, lats, q, tb_csrttov, plotpath, server)
-        ds.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_clearsky.nc', 'w')
+        #ds.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_clearsky.nc', 'w')
 
         das = T2P.MHS_as_sims(lons, lats, tb_asrttov_test, plotpath, server, '_test')
-        das.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_test.nc', 'w')
+        #das.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_test.nc', 'w')
         
     if 'AMSR' in instrument: 
         T2P.plot_simple_AMSR2_TEST(lons, lats, q, tb_csrttov, tb1, plotpath)
@@ -908,6 +908,7 @@ def main_noiwc(isnow, eqMass, iiname):
     main_Process_Expliu_noiwc('MHS', '20:30', 6, server, skipProfs, eqMass_do=eqMass, isnow=isnow, optname=iiname)
     print('Finished running for isnow: '+str(isnow))
     
+main_basic() 
 # main_noiwc(9, 0, 'noiwc')
 # main_noiwc(9, 1, 'noiwc')
 # main_noiwc(3, 1, 'noiwc')
@@ -927,7 +928,7 @@ def main_noiwc(isnow, eqMass, iiname):
 # =============================================================================
 
 #main_halfiwc_grausp(3, 0, 'onlygrau')
-main_halfiwc_grausp(3, 1, 'onlygrau')
+#main_halfiwc_grausp(3, 1, 'onlygrau')
 
 
 # main_halfiwc_grausp(9, 1, 'grau_iwc')
