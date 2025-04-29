@@ -2227,6 +2227,40 @@ def run_obs_radar():
  
     return
 
+#-----------------------------------------------------------------
+def rhop3():
+    
+    data = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_3MOM_LF_domain3_NoahMP/'
+    file = 'wrfout_d02_2018-11-10_20:30:00'
+    
+    ncfile       = Dataset(data+file,'r')        
+    lat          = wrf.getvar( ncfile,"lat") 
+    lon          = wrf.getvar( ncfile,"lon")
+    lat          = wrf.getvar( ncfile,"lat") 
+    lon          = wrf.getvar( ncfile,"lon")
+    rho          = wrf.getvar( ncfile,"rho_ice")
+    z            = wrf.getvar( ncfile,"z") 
+    zh           = wrf.getvar(ncfile, "REFL_10CM")
+    REFL_10CM    = wrf.interplevel(zh, z, 3000)    
+    
+    arr_masked = np.where(rho == 0, np.nan, rho)
+    
+    #--------------------------------------------------------------------------
+    fig, ax = plt.subplots(figsize=(12,8)) 
+    pcm = ax.pcolormesh(lon[:,320], z[:,:,320]/1e3,  arr_masked[:,:,320], cmap='viridis', vmin=0,  vmax=900)
+    cbar = plt.colorbar(pcm, ax=ax, shrink=1)
+    cbar.cmap.set_under('white')    
+    ax.set_title('rho_ice WRF-P3 model output')
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Height (km)')
+    ax.grid(True)
+    ax.set_ylim([0, 20])
+    
+    fig.savefig('/home/vito.galligani/rho_p3_poster.png', dpi=300,transparent=False, bbox_inches='tight')
+
+
+    return
+
 #----------------------------------------------------------------
 def run_cnrm():
     

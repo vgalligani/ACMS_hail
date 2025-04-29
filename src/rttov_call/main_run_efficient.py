@@ -433,7 +433,97 @@ def main_Process_cs_andWRF(instrument, HHtime, mp_version, server):
         
     return
 
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+def main_Process_sieron(instrument, HHtime, mp_version, server, skipProfs, isnow, igrau): 
+
+    if (mp_version == 6):
+      mp_physics = 'WRF-WSM6'
+
+    plotpath, folders = config_folders(server)
+    
+    # Select server and folder locations
+    #--------------------------------------------------------------------------
+    if 'yakaira' in server: 
+        upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
+        sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
+        processedFolder = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/Processed/'+mp_physics
+      
+    elif 'cnrm' in server:
+        upfolder    = '/home/galliganiv/'   
+        sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
+        processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+
+    # Select instrument configurations
+    #--------------------------------------------------------------------------
+    if 'MHS' in instrument: 
+        nchan = 5
+    elif 'AMSR' in instrument:
+        nchan = 14
         
+    #--------------------------------------------------------------------------
+    # server dependent files    
+    from package_functions import pressure2height
+    import package_functions as funs
+    
+    if mp_version == 6:
+        mp_physics = 'WRF-WSM6'
+        ncfile     = upfolder+'WRFOUT/WSM6_domain3_NoahMP/wrfout_d02_2018-11-10_'+HHtime+':00'
+        ncdata     = Dataset(ncfile,'r') 
+        [qr, qs, qi, qc, qg, qr_int, qs_int, qi_int, qc_int, qg_int] = funs.get_q_ints6(ncdata)
+        int_titles = ['qr','qc','qi','qs','qg']
+
+    flag_name = 'rttov14_'+instrument+'_'+mp_physics+'_2018-11-10_'+HHtime
+
+    # RTTOVout folders
+    outfoldereq       = mp_physics+'_20181110_'+HHtime+'_'+instrument +'_atlas_satzen_input__SIERON_WSM6_'
+   
+    #------        
+    # Load all profiles
+    A    = read_wrf(ncfile)
+    toti = A['XLONG'].shape[0]
+    totj = A['XLONG'].shape[1]       
+    lats         = np.zeros(A['XLONG'].shape); lats[:]=np.nan
+    lons         = np.zeros(A['XLONG'].shape); lons[:]=np.nan
+    rows, cols = A['XLONG'].shape
+    shape_ = A['XLONG'].shape
+ 
+    #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
+    # read for all liu - liu combinations w/ snow and grau
+    # default cloud overlap settings as above (+renormalization)
+    exp_asrttov_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_sieron_rsg', nchan, isnow, igrau)
+
+    outfile = 'output_tb_'+instrument
+    tb_asrttov = np.zeros( (nchan,rows,cols) );   tb_asrttov[:]=np.nan 
+
+    counter = 0
+    rttov_counter = 0
+    
+    for idx, (i,j) in enumerate(np.ndindex(shape_)):
+        lats[i,j] = A['XLAT'].data[i,j]
+        lons[i,j] = A['XLONG'].data[i,j]
+        
+        if idx in skipProfs:
+            tb_asrttov[:,i,j] = np.nan
+        
+        else:
+            tb_asrttov[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+            rttov_counter=rttov_counter+1
+                    
+    # Pre-process like this if MHS                
+    if 'MHS' in instrument: 
+                    
+        das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'g'+str(igrau))
+        das1.to_netcdf(processedFolder+'/'+outfile+'rttov_processed_allsky_sieron_rsg_s'+str(isnow)+'g'+str(igrau)+'.nc', 'w')
+        das1.close()
+        gc.collect()
+        del tb_asrttov
+
+    return
+
+
+
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 def main_Process_Expliu(instrument, HHtime, mp_version, server, skipProfs, eqMass_do, isnow, igrau): 
@@ -907,8 +997,22 @@ def main_noiwc(isnow, eqMass, iiname):
     skipProfs = filter_pixels_monotonic(6, '20:30', server)
     main_Process_Expliu_noiwc('MHS', '20:30', 6, server, skipProfs, eqMass_do=eqMass, isnow=isnow, optname=iiname)
     print('Finished running for isnow: '+str(isnow))
+
+def main_sieron(isnow, igrau):
     
-main_basic() 
+    server = 'yakaira'
+    skipProfs = filter_pixels_monotonic(6, '20:30', server)   
+    main_Process_sieron('MHS', '20:30', 6, server, skipProfs, isnow=isnow, igrau=igrau)
+    print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
+
+
+# =============================================================================
+##---- processs selected sieron simulations! s9 y s3! 
+main_sieron(3, 0)
+
+
+#main_basic() 
+
 # main_noiwc(9, 0, 'noiwc')
 # main_noiwc(9, 1, 'noiwc')
 # main_noiwc(3, 1, 'noiwc')
