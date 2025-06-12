@@ -11,7 +11,7 @@ import seaborn as sns
 import matplotlib.ticker as ticker
 import os
 from datetime import datetime
-
+from config import config_folders
 
 plt.matplotlib.rc('font', family='serif', size = 16)
 plt.rcParams['xtick.labelsize']=16
@@ -346,6 +346,47 @@ def plt_aDb(plotpath):
 
 
 #------------------------------------------------
+def plt_aDb_density(plotpath):
+    
+    isspname = ['Long hex col.','Short hex col.','Block hex col.','Thick hex col','Thin hex col.','3b ros.','4b ros.','5b ros.','6b ros.','Sector','Dendrite']     
+
+    diam = np.linspace(1e-6, 1e-2, num=100)
+    # Get the same colors as other plots:
+    base_colors = sns.color_palette('Paired')       
+    
+    a = [37.09, 116.12, 229.66, 122.66, 32.36, 0.32,  0.06,  0.07, 0.09, 0.002, 0.01]
+    b = [3.00, 3.00, 3.00, 3.00, 3.00, 2.37, 2.12,  2.12,  2.13,  1.58, 1.90]
+                         
+    rhos = 300
+    rhog = 500
+    
+    asnow = rhos*(3.14/6) 
+    agrau = rhog*(3.14/6) 
+    
+    fig = plt.figure(figsize=(6, 6))
+    
+    do_thisSSPs = [2,5,9,10]
+    
+    for issp in do_thisSSPs:
+        if issp == 10:
+            base_colors[issp]=base_colors[issp+1]
+        plt.loglog(diam/1e-3,  a[issp]*diam ** b[issp] ,linestyle='-', linewidth=1.2, color=base_colors[issp], label=f'{isspname[issp]}')  
+    
+    plt.loglog(diam/1e-3, asnow*diam**3 ,linestyle='-', linewidth=1.2, color='k', label=r'$\rho_s$=0.1')
+    plt.loglog(diam/1e-3, agrau*diam**3 ,linestyle='--', linewidth=1.2, color='k', label=r'$\rho_g$=0.5')
+
+    plt.ylabel('mass [kg]')
+    plt.xlabel('diameter [mm]')
+    plt.grid(True)
+    
+    plt.legend(ncol=1, fontsize=10)
+    plt.show()
+    fig.savefig(plotpath+'/RTTOV/rho_4wg_general.png', dpi=300,transparent=False)
+    
+    return
+
+
+#------------------------------------------------
 #------------------------------------------------
 def get_experiment(WSM6path): 
 
@@ -539,9 +580,110 @@ def plot_nd_poster_lessspecies(plotpath):
     plt.show()
     fig.savefig(plotpath+'/RTTOV/nd_summary_general_lesspecies.png', dpi=300,transparent=False)
 
-
     return
 
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+def plot_nd_poster_lessspecies_3subplots(plotpath):
+    
+    isspname = ['Long hex col.','Short hex col.','Block hex col.','Thick hex col','Thin hex col.','3b ros.','4b ros.','5b ros.','6b ros.','Sector','Dendrite']     
+    do_thisSSPs = [2,5,9,10]
+
+    plt.matplotlib.rc('font', family='serif', size = 18)
+    plt.rcParams['xtick.labelsize']=18
+    plt.rcParams['ytick.labelsize']=18 
+
+    n0  =  2e6*np.exp(0.12*(273.15-263))
+    lam = (3.14*100*n0/0.1*1e3)**(1/4)
+    diams_ = snow_diam[0,:]
+
+    ng0  =  4e6
+    lamg = (3.14*500*ng0/0.1*1e3)**(1/4)
+
+    base_colors = sns.color_palette('Paired')   
+        
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=[15,10])
+    fig.subplots_adjust(hspace=0.3)
+    
+    for issp in do_thisSSPs:     
+        if issp == 10:
+            base_colors[issp]=base_colors[issp+1]
+        axes[0,0].plot([],[],linestyle='-', linewidth=2, color=base_colors[issp], label=f'{isspname[issp]}')    
+    axes[0,0].plot([], [], color='k',  linestyle=':', linewidth=2, label=r'n$_0$exp(-$\lambda$D)')   
+    fig.legend(loc='lower left', ncol=5, bbox_to_anchor=(0.1,-0.05))
+
+    # axes[1].legend(ncol=1, loc='lower left', fontsize=14)
+    # axes[1].legend(loc='lower left')
+
+    # snow wsm6 
+    for issp in do_thisSSPs: 
+
+        # snow wsm6    
+        axes[0,0].loglog(snow_diam[issp,:], WSM6Norm_snow[issp,0,201,:], linestyle='-', linewidth=1.2, color=base_colors[issp], label=f'{isspname[issp]}')    
+        # snow eq mass wsm6 
+        axes[0,1].loglog(snow_diam1[0,:], WSM6Norm_snow1[0,0,201,:], linestyle='-', markersize=3, linewidth=1.2, color=base_colors[issp], label=f'{isspname[issp]}')                   
+        axes[0,2].loglog(snow_diam[issp,:], WSM6Norm_snow2[issp,0,201,:], linestyle='-', linewidth=1.2, color=base_colors[issp], label=f'{isspname[issp]}')    
+        axes[0,2].loglog(snow_diam1[0,:], WSM6Norm_snow1[0,0,201,:], linestyle='-', marker='o', markersize=3, linewidth=1.2, alpha=0.2, color='gray', label=f'{isspname[issp]}')                   
+
+
+        axes[0,0].loglog(diams_, n0*np.exp(-lam*diams_), 'k',  linestyle=':', linewidth=2, label='WSM6 n(D)')   
+        axes[0,1].loglog(diams_, n0*np.exp(-lam*diams_), 'k',  linestyle=':', linewidth=2, label='WSM6 n(D)')   
+        axes[0,2].loglog(diams_, n0*np.exp(-lam*diams_), 'k',  linestyle=':', linewidth=2, label='WSM6 n(D)')   
+    
+        axes[0,0].set_title(f'iwc rescaling')
+        axes[0,1].set_title(f'eqMass')
+        axes[0,2].set_title(f'M(D) Sieron et al. (2018)')
+
+        axes[0,0].set_ylabel('nd(D) [1/m4]')
+        
+        axes[0,0].set_ylim([1,1e10])
+        axes[0,1].set_ylim([1,1e10])
+        axes[0,2].set_ylim([1,1e10])
+        axes[0,0].grid(True)
+        axes[0,1].grid(True)
+        axes[0,2].grid(True)
+        axes[0,0].set_xlim([1e-4,1e-2])
+        axes[0,1].set_xlim([1e-4,1e-2])
+        axes[0,2].set_xlim([1e-4,1e-2])
+                
+        fig.text(0.5, 0.94, r'WSM6 Snow ($\rho$=0.1g/m3, T=263K)', ha='center', va='center', fontsize=16,fontweight='bold')
+        
+        # # grau wsm6    
+        # axes[1,0].loglog(grau_diam[issp,:], WSM6Norm_grau[issp,0,201,:], linestyle='-', linewidth=1.2, color=base_colors[issp], label=f'Liu: {issp}')       
+        # # grau eq mass wsm6 
+        # axes[1,0].loglog(grau_diam1[0,:], WSM6Norm_grau1[0,0,201,:], linestyle='-', marker='o', markersize=5, linewidth=1.2, color='gray', label='eqMass_WSM6')         
+        # axes[1,0].loglog(diams_, ng0*np.exp(-lamg*diams_),'k',  linestyle=':', linewidth=2, label='WSM6')   
+        # axes[1,0].loglog(grau_diam[issp,:], WSM6Norm_grau2[issp,0,201,:], linestyle='--', linewidth=1.2, color=base_colors[issp], label=f'Liu: {issp}')       
+
+        axes[1,0].loglog(grau_diam[issp,:], WSM6Norm_grau[issp,0,201,:], linestyle='-', linewidth=1.2, color=base_colors[issp], label=f'{isspname[issp]}')     
+        axes[1,1].loglog(grau_diam1[0,:], WSM6Norm_grau1[0,0,201,:], linestyle='-',  markersize=3, linewidth=1.2, color=base_colors[issp], label=f'{isspname[issp]}')                   
+        axes[1,2].loglog(grau_diam[issp,:], WSM6Norm_grau2[0,0,201,:], linestyle='-', markersize=3, linewidth=1.2, color=base_colors[issp], label=f'{isspname[issp]}')                      
+        #axes[1,2].loglog(grau_diam1[0,:], WSM6Norm_grau1[0,0,201,:], linestyle='-', marker='o', markersize=3, linewidth=1.2, alpha=0.2, color='gray', label=f'{isspname[issp]}')                   
+
+        axes[1,0].loglog(diams_, ng0*np.exp(-lamg*diams_), 'k',  linestyle=':', linewidth=2, label='WSM6 n(D)')   
+        axes[1,1].loglog(diams_, ng0*np.exp(-lamg*diams_), 'k',  linestyle=':', linewidth=2, label='WSM6 n(D)')   
+        axes[1,2].loglog(diams_, ng0*np.exp(-lamg*diams_), 'k',  linestyle=':', linewidth=2, label='WSM6 n(D)')   
+    
+        axes[1,0].set_ylabel('nd(D) [1/m4]')
+        axes[1,0].set_xlabel('D [m]')
+
+        axes[1,0].set_ylim([1,1e10])
+        axes[1,1].set_ylim([1,1e10])
+        axes[1,2].set_ylim([1,1e10])
+        axes[1,0].grid(True)
+        axes[1,1].grid(True)
+        axes[1,2].grid(True)
+        axes[1,0].set_xlim([1e-4,1e-2])
+        axes[1,1].set_xlim([1e-4,1e-2])
+        axes[1,2].set_xlim([1e-4,1e-2])
+    
+        fig.text(0.5, 0.47, r'WSM6 grau ($\rho$=0.4g/m3, T=263K)', ha='center', va='center', fontsize=16,fontweight='bold')
+
+    plt.show()
+    fig.savefig(plotpath+'/RTTOV/nd4_wgmeeting.png', dpi=300,transparent=False, bbox_inches='tight')   
+
+    return
 
 
 #--------------------------------------------------------------------------------------------
@@ -833,16 +975,21 @@ snow_diam2, grau_diam2, WSM6preNorm_snow2, WSM6Norm_snow2, WSM6preNorm_grau2, WS
 
 #------------------------------------------------
 # Think of a plot for the poster for n(D)
-plotpath = '/Users/vito.galligani/Work/Studies/HAIL_20181110/SCATANAL'    
-plotpath = os.path.join(plotpath,datetime.now().strftime('%d%m%Y'))
-# If the latter sub-folder does not exist, create it.
-if not os.path.exists(plotpath):
-    os.makedirs(plotpath)        
+plotpath, folders = config_folders('laptop')
+    
+#plotpath = '/Users/vito.galligani/Work/Studies/HAIL_20181110/SCATANAL'    
+#plotpath = os.path.join(plotpath,datetime.now().strftime('%d%m%Y'))
+#if not os.path.exists(plotpath):
+#    os.makedirs(plotpath)        
 
 do_this = 0
 if do_this == 1: 
     #plot_nd_poster(plotpath)
     plot_nd_poster_lessspecies(plotpath)
+
+plot_nd_poster_lessspecies_3subplots(plotpath)
+    
+    
 
 #------------------------------------------------
 # 3) BULKS
@@ -859,7 +1006,9 @@ bulk_snow_ext1, bulk_snow_ssa1, bulk_snow_asm1 = get_bulk(eqMassWSM6path,'snow')
 bulk_grau_ext2, bulk_grau_ssa2, bulk_grau_asm2 = get_bulk(sieronpath,'grau') 
 bulk_snow_ext2, bulk_snow_ssa2, bulk_snow_asm2 = get_bulk(sieronpath,'snow') 
     
-plot_bulks_together_lessspecies(plotpath)            # missing soft sphere?     
+do_this = 0
+if do_this == 1: 
+    plot_bulks_together_lessspecies(plotpath)            # missing soft sphere?     
     
     
 
