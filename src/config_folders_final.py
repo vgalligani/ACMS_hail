@@ -9,11 +9,16 @@ def config_folders(server):
         
         
         # EXPS que analizo finalmente: 
-        EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
-                'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP', 
-                'initcond_fromwrf_domain3_WSM6_d01P3_54', 'P3_3MOM_LF_domain_noNoah','P3mp54_domain3_YSU_noNoahMP', 'WSM6_domain3_plevels']
-        #-----------------------------------------------------------------------
+        #EXPs = ['WSM6_domain3', 'WSM6_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP', 'P3_3MOM_LF_domain3_NoahMP_highres', 
+        #        'THOM_domain3_NoahMP', 'WDM6_domain3_NoahMP', 'WSM6_domain3_YSU_noNoahMP', 
+        #        'initcond_fromwrf_domain3_WSM6_d01P3_54', 'P3_3MOM_LF_domain_noNoah','P3mp54_domain3_YSU_noNoahMP', 'WSM6_domain3_plevels', 'P3_1domain']
         
+        # EXPS que analizo finalmente para el newERA5 and oldERA5 w/ ungrib:
+        EXPs = ['WSM6_1domain', 'P3_1domain', 'P3_1domain_15hrs', 'WSM6_1domain_15hrs', 'P3_1domain_15hrs_newERA5', 'WSM6_1domain_15hrs_newERA5']            
+                
+        
+        
+        #-----------------------------------------------------------------------
         # ---- WRFOUT files for all experiments 
         folders['WSM6_domain2']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain2/'
         folders['WSM6_domain3']= '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3/'
@@ -38,14 +43,25 @@ def config_folders(server):
         folders['P3_54_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3_54_domain3_NoahMP_YSU/'
         folders['WSM6_domain3_NoahMP_YSU']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_NoahMP_YSU/'
 
+        #--------------------------------------------------------------------------------------------------------------------------------------------
+        # 1 domain after talk with Maru Dillon 
+        folders['P3_1domain'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest/'
+        folders['WSM6_1domain'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest/'
+        folders['P3_1domain_15hrs'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest_15hrs/'
+        folders['WSM6_1domain_15hrs'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest_15hrs/'
+        folders['P3_1domain_15hrs_newERA5'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest_15hrs_newERA5/' 
+        folders['WSM6_1domain_15hrs_newERA5'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest_15hrs_newERA5/' 
+        #--------------------------------------------------------------------------------------------------------------------------------------------
+        
+        
         folders['WSM6_domain3_YSU_noNoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_YSU_noNoahMP/'
         folders['P3mp54_domain3_YSU_noNoahMP']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/P3mp54_domain3_YSUnoNoah/'
         folders['WSM6_domain3_plevels']='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT/WSM6_domain3_plevs/'
         #folders['0411_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/WSM6/'
         #folders['0411_P3check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_04112018_datos/P3_mp54/'
         #folders['1312_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_13122018_datos/WSM6noNoah/'
-        #folders['2501_WSM6check']='/home/vito.galligani/datosmunin3/Work/HAILCASE_01252019_datos/noNoah/'   
-     
+        folders['2501_WSM6']='/home/vito.galligani/datosmunin3/Work/HAILCASE_01252019_datos/WSM6/'    
+
         # ------ main savedir 
         # Within this folder, define the name of a sub-folder according to date
         folders['savedir'] = '/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/Plots_final/'
