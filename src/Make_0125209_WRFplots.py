@@ -27,8 +27,8 @@ plt.matplotlib.rc('font', family='serif', size = 12)
 plt.rcParams['xtick.labelsize']=12
 plt.rcParams['ytick.labelsize']=12  
 
-lonrange = [-67.5,-62]
-latrange = [-35,-31]
+lonrange = [-70, -60] #[-67.5,-62]
+latrange = [-40, -25] #[-35,-31]
 prov     = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
 
 
@@ -83,7 +83,7 @@ def plot_ZH1km_WRF(EXP, title, domain, date, servidor, folders):
     ax.grid()
     ax.set_title('Zh interp. at 3km at '+title)
     
-    fig.savefig(save_dir_compare+'/'+EXP+f'/WRF_ZH3km_{domain}_{title}.png', dpi=300,
+    fig.savefig(save_dir_compare+EXP+f'/WRF_ZH3km_{domain}_{date}_{title}.png', dpi=300,
                 transparent=False, bbox_inches='tight')
     plt.close()
     
@@ -91,7 +91,7 @@ def plot_ZH1km_WRF(EXP, title, domain, date, servidor, folders):
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def single_WRF_files(EXP, domain, title, save_dir_compare): 
+def single_WRF_files(EXP, domain, title): 
     
     WRFfolder = folders[EXP]
     save_dir_compare = folders['save_dir_compare']
@@ -166,17 +166,18 @@ folders=config_folders_final.config_folders('yakaira')
     
 EXP    = '2501_WSM6'
 date   = '2019-01-25' 
-domain = 'd02'
+domain = 'd01'
 
 for h in range(16, 23):
-    for m in range(0, 60, 30):
-        plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", domain, date, 'yakaira', folders)
+    #for m in range(0, 60, 30):
+    #    #plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", domain, date, 'yakaira', folders)
+    plot_ZH1km_WRF(EXP, f"{h}:00", domain, date, 'yakaira', folders)
+
 plot_ZH1km_WRF(EXP, "23:00", domain, date, 'yakaira', folders)
-plot_ZH1km_WRF(EXP, "23:30", domain, date, 'yakaira', folders)
-plot_ZH1km_WRF(EXP, "00:00", domain, date, 'yakaira', folders)
-plot_ZH1km_WRF(EXP, "00:30", domain, date, 'yakaira', folders)
-plot_ZH1km_WRF(EXP, "01:00", domain, date, 'yakaira', folders)
-plot_ZH1km_WRF(EXP, "01:30", domain, date, 'yakaira', folders)
+#plot_ZH1km_WRF(EXP, "23:30", domain, date, 'yakaira', folders)
+plot_ZH1km_WRF(EXP, "00:00", domain, '2019-01-26', 'yakaira', folders)
+#plot_ZH1km_WRF(EXP, "00:30", domain, '2019-01-26', 'yakaira', folders)
+plot_ZH1km_WRF(EXP, "01:00", domain, '2019-01-26', 'yakaira', folders)
 
 single_WRF_files('d02', '2501_WSM6', folders)
                 

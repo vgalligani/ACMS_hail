@@ -491,9 +491,14 @@ def main_Process_sieron(instrument, HHtime, mp_version, server, skipProfs, isnow
     #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
     # read for all liu - liu combinations w/ snow and grau
     # default cloud overlap settings as above (+renormalization)
-    exp_asrttov_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_sieron_rsg', nchan, isnow, igrau)
+    #exp_asrttov_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_sieron_rsg', nchan, isnow, igrau)
 
-    outfile = 'output_tb_'+instrument
+    # main output folder
+    main_folder = folders['read_out_dir']+mp_physics+'/'
+    file_folder='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/WRF-WSM6/RTTOVsieron/'
+    exp_asrttov_rsgliu =  np.genfromtxt(file_folder+'output_tb_allsky_'+instrument+'sieron_sliu'+str(isnow)+'gliu'+str(igrau)) 
+
+    outfile = 'output_tb_allsky_'+instrument+'sieron_sliu'+str(isnow)+'gliu'+str(igrau)
     tb_asrttov = np.zeros( (nchan,rows,cols) );   tb_asrttov[:]=np.nan 
 
     counter = 0
@@ -1008,8 +1013,11 @@ def main_sieron(isnow, igrau):
 
 # =============================================================================
 ##---- processs selected sieron simulations! s9 y s3! 
-main_sieron(3, 0)
-
+#for issp in range(11):
+#  main_sieron(3, issp)
+#for isnow in range(11):
+#  for igrau in range(11):
+#    main_sieron(isnow,igrau)
 
 #main_basic() 
 
@@ -1056,13 +1064,14 @@ main_sieron(3, 0)
 # main_noiwc(3, ieqMass, 'onlygrau')  # ojo que aca cambien para que sea rain
 
 
-# if __name__ == "__main__":
-#     if len(sys.argv) < 5:
+if __name__ == "__main__":
+#  if len(sys.argv) < 5:
 #         print("Usage: python your_script.py <isnow> <igrau> <?>")
 #         sys.exit(1)
     
-#     isnow = int(sys.argv[1])   # or float() if needed
-#     igrau = int(sys.argv[2])   # or float() if needed
+    isnow = int(sys.argv[1])   # or float() if needed
+    igrau = int(sys.argv[2])   # or float() if needed
+    main_sieron(isnow,igrau)
 #     ieqMass =  int(sys.argv[3]) 
 #     iwcname =  str(sys.argv[4]) 
 #     #main_basic()

@@ -574,7 +574,7 @@ def plot_WRF_intqx(EXP, title, mp, folders, domain):
         fig.delaxes(ax[4])
         
     
-    plt.show()
+    #plt.show()
     
     fig.savefig(save_dir_compare+'/'+EXP+'/WRF_totqx_'+title, dpi=300,transparent=False,bbox_inches='tight')
     plt.close()    
@@ -955,9 +955,8 @@ def plot_ZH1km_WRFdate(EXP, title, domain, servidor, folders, date):
 
 
     
-    
 #------------------------------------------------------------------------------
-def plot_ZH1_COLMAX_WRF(EXP, title, folders):
+def plot_ZH1_COLMAX_WRFdate(EXP, title, folders, domain, date):
 
     folders   = config_folders_final.config_folders('yakaira')
     WRFfolder = folders[EXP]
@@ -978,9 +977,8 @@ def plot_ZH1_COLMAX_WRF(EXP, title, folders):
     [lat_radius, lon_radius] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,120)   
     [lat_radius2, lon_radius2] = pyplot_rings(radarLAT_RMA1,radarLON_RMA1,220)   
     
-    prefix   = 'wrfout_d02_2018-11-10_'+title
-    filename = os.path.join(WRFfolder, 'wrfout_d02_2018-11-10_'+title+':00')
-
+    prefix   = 'wrfout_'+domain+'_'+date+'_'+title        
+    filename = os.path.join(WRFfolder, prefix+':00')
     
     ncfile       = Dataset(filename,'r')        
     z            = wrf.getvar( ncfile,"z") 
@@ -994,13 +992,10 @@ def plot_ZH1_COLMAX_WRF(EXP, title, folders):
     cbar = plt.colorbar(pcm, ax=ax, shrink=1)
     ax.plot(prov[:,0],prov[:,1],color='k'); 
         
-    if 'Maite' in title: 
-        ax.set_xlim([-65,-63.9]); 
-        ax.set_ylim([-33,-31.5])
-                
-    else:
-        ax.set_xlim([-65.5,-62]); 
-        ax.set_ylim([-35,-31])
+    ax.set_xlim([-67.5,-62]); 
+    ax.set_ylim([-35,-31])
+        
+    
     ax.plot(lon_radius, lat_radius, 'k', linewidth=0.8)
     ax.plot(lon_radius2, lat_radius2, 'k', linewidth=0.8)
         
@@ -1012,8 +1007,9 @@ def plot_ZH1_COLMAX_WRF(EXP, title, folders):
     ax.set_title('Zh COLMAX at '+title)
     
     ax.text(x=-65, y=-34.9, s='120 and 220 km radar rings')
-    plt.show()
+    #plt.show()
     fig.savefig(save_dir_compare+'/'+EXP+'/WRF_ZHcolmax_general_evolution_'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
+
     plt.close()
      
     return#------------------------------------------------------------------------------
@@ -2078,6 +2074,38 @@ def main(exp, folders):
     single_WRF_files(WRFfolder=folders[exp], title=exp, save_dir_compare=newdir)
     
     return
+#------------------------------------------------------------------------------
+def run_1domaintets(EXPs):
+    
+    folders=config_folders_final.config_folders('yakaira')
+
+    date =  '2018-11-11' 
+
+    for EXP in EXPs:
+        for h in range(18, 23):
+            for m in range(0, 60, 30):
+                plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd01', 'yakaira', folders)  
+                plot_WRF_intqx(EXP, f"{h}:{m:02d}", 6, folders, 'd01')
+                plot_ZH1_COLMAX_WRFdate(EXP, f"{h}:{m:02d}", folders, 'd01', '2018-11-10')
+
+
+        plot_WRF_intqx(EXP,"23:30", 6, folders, 'd01')
+
+        plot_ZH1km_WRF(EXP, "23:30", 'd01', 'yakaira', folders)
+        plot_ZH1km_WRFdate(EXP, "00:00", 'd01', 'yakaira', folders, date)   
+        plot_ZH1km_WRFdate(EXP, "00:30", 'd01', 'yakaira', folders, date)   
+        plot_ZH1km_WRFdate(EXP, "01:00", 'd01', 'yakaira', folders, date)   
+        plot_ZH1km_WRFdate(EXP, "01:30", 'd01', 'yakaira', folders, date)
+            
+        plot_ZH1_COLMAX_WRFdate(EXP, "23:30", folders, 'd01', '2018-11-10')
+        plot_ZH1_COLMAX_WRFdate(EXP, "00:00", folders, 'd01', date)
+        plot_ZH1_COLMAX_WRFdate(EXP, "00:30", folders, 'd01', date)
+        plot_ZH1_COLMAX_WRFdate(EXP, "01:00", folders, 'd01', date)
+        plot_ZH1_COLMAX_WRFdate(EXP, "01:30", folders, 'd01', date)
+
+
+    return
+
 
 #------------------------------------------------------------------------------
 def run_all(EXPs): 
@@ -2085,11 +2113,11 @@ def run_all(EXPs):
     # borrar los config foldeders de adentro y pasarlos afurea! 
     folders=config_folders_final.config_folders('yakaira')
 
-    plot_domain('yakaira', 'WSM6_domain2')
-    plot_domain('yakaira', 'WSM6_domain3')
-    plot_domain('yakaira', 'WSM6_domain3_NoahMP')
-    plot_domain('yakaira', 'WSM6_domain4_NoahMP')
-    plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_highres')
+    #plot_domain('yakaira', 'WSM6_domain2')
+    #plot_domain('yakaira', 'WSM6_domain3')
+    #plot_domain('yakaira', 'WSM6_domain3_NoahMP')
+    #plot_domain('yakaira', 'WSM6_domain4_NoahMP')
+    #plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_highres')
     #plot_domain('yakaira', 'P3_3MOM_LF_domain3_NoahMP_lowres')
     #plot_domain('yakaira', 'P3_3MOM_LF_domain5_NoahMP')
 
@@ -2275,6 +2303,11 @@ def run_cnrm():
     return
 
 #-----------------------------------------------------------------
-run_all(['WSM6_domain3','WSM6_domain3_plevels']) 
+#run_1domaintets(['P3_1domain', 'P3_1domain_15hrs','WSM6_1domain_15hrs']) #'WSM6_1domain', 
+run_1domaintets(['WSM6_1domain_15hrs']) 
+
+# EXPs = ['WSM6_1domain', 'P3_1domain', 'P3_1domain_15hrs', 'WSM6_1domain_15hrs', 'P3_1domain_15hrs_newERA5', 'WSM6_1domain_15hrs_newERA5']            
+
+#run_all(['WSM6_domain3','WSM6_domain3_plevels']) 
 #run_obs_radar()
 #plot_VELradar_cspr2_singletime([-33.4,-31], [-65.5,-63.5])
