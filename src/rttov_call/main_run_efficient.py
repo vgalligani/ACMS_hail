@@ -34,7 +34,7 @@ import gc
 import numpy as np
 import matplotlib.pyplot as plt
 import Tools2Plot as T2P
-from Tools2RunRTTOV import read_wrf, run_IFS_rttov14, filter_pixels, find_pixels, filter_pixels_monotonic
+from Tools2RunRTTOV import read_wrf, run_IFS_rttov14, filter_pixels, find_pixels, filter_pixels_monotonic, run_IFS_rttov14_version2
 from config import config_folders
 #import Plots4Analysis as P4A
 from netCDF4 import Dataset
@@ -153,7 +153,7 @@ def eqmass_exp_grausp(folders, outfoldereq, mp_physics, HHtime, instrument, expe
     
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-def main_makeProfs(instrument, HHtime, mp_version, server): 
+def main_makeProfs(instrument, HHtime, mp_version, server, half_p_levels): 
 
     plotpath, folders = config_folders(server)
     
@@ -185,7 +185,8 @@ def main_makeProfs(instrument, HHtime, mp_version, server):
 
     # Make profiles and run rttov on terminal 
     ipnd=1
-    run_IFS_rttov14(ipnd, mp_version, HHtime, instrument, skipProfs_monotonic, server)
+    run_IFS_rttov14_version2(ipnd, mp_version, HHtime, instrument, skipProfs_monotonic, server, half_p_levels)
+    #run_IFS_rttov14(ipnd, mp_version, HHtime, instrument, skipProfs_monotonic, server, half_p_levels)
 
     return
 
@@ -526,6 +527,179 @@ def main_Process_sieron(instrument, HHtime, mp_version, server, skipProfs, isnow
 
     return
 
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+def main_Process_sieron_grausp(instrument, HHtime, mp_version, server, skipProfs, isnow): 
+
+    if (mp_version == 6):
+      mp_physics = 'WRF-WSM6'
+
+    plotpath, folders = config_folders(server)
+    
+    # Select server and folder locations
+    #--------------------------------------------------------------------------
+    if 'yakaira' in server: 
+        upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
+        sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
+        processedFolder = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/Processed/'+mp_physics
+      
+    elif 'cnrm' in server:
+        upfolder    = '/home/galliganiv/'   
+        sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
+        processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+
+    # Select instrument configurations
+    #--------------------------------------------------------------------------
+    if 'MHS' in instrument: 
+        nchan = 5
+    elif 'AMSR' in instrument:
+        nchan = 14
+        
+    #--------------------------------------------------------------------------
+    # server dependent files    
+    from package_functions import pressure2height
+    import package_functions as funs
+    
+    if mp_version == 6:
+        mp_physics = 'WRF-WSM6'
+        ncfile     = upfolder+'WRFOUT/WSM6_domain3_NoahMP/wrfout_d02_2018-11-10_'+HHtime+':00'
+        ncdata     = Dataset(ncfile,'r') 
+        [qr, qs, qi, qc, qg, qr_int, qs_int, qi_int, qc_int, qg_int] = funs.get_q_ints6(ncdata)
+        int_titles = ['qr','qc','qi','qs','qg']
+   
+    #------        
+    # Load all profiles
+    A    = read_wrf(ncfile)
+    toti = A['XLONG'].shape[0]
+    totj = A['XLONG'].shape[1]       
+    lats         = np.zeros(A['XLONG'].shape); lats[:]=np.nan
+    lons         = np.zeros(A['XLONG'].shape); lons[:]=np.nan
+    rows, cols = A['XLONG'].shape
+    shape_ = A['XLONG'].shape
+ 
+    #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
+    # read for all liu - liu combinations w/ snow and grau
+    # default cloud overlap settings as above (+renormalization)
+    #exp_asrttov_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_sieron_rsg', nchan, isnow, igrau)
+
+    # main output folder
+    main_folder = folders['read_out_dir']+mp_physics+'/'
+    file_folder='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/WRF-WSM6/RTTOVsieron/'
+    exp_asrttov_rsgliu =  np.genfromtxt(file_folder+'output_tb_allsky__WSM6_sieron_rsg_sliu'+str(isnow)+'grausp_halfgrau') 
+
+    outfile = 'output_tb_allsky_'+instrument+'sieron_sliu'+str(isnow)+'grausp'
+    tb_asrttov = np.zeros( (nchan,rows,cols) );   tb_asrttov[:]=np.nan 
+
+    counter = 0
+    rttov_counter = 0
+    
+    for idx, (i,j) in enumerate(np.ndindex(shape_)):
+        lats[i,j] = A['XLAT'].data[i,j]
+        lons[i,j] = A['XLONG'].data[i,j]
+        
+        if idx in skipProfs:
+            tb_asrttov[:,i,j] = np.nan
+        
+        else:
+            tb_asrttov[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+            rttov_counter=rttov_counter+1
+                    
+    # Pre-process like this if MHS                
+    if 'MHS' in instrument: 
+                    
+        das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov[:,:,:], plotpath, server, '_rsg_s'+str(isnow)+'grausp_halfgrau')
+        das1.to_netcdf(processedFolder+'/'+'rttov_processed_allsky_sieron_rsg_s'+str(isnow)+'grausp_halfgrau.nc', 'w')
+        das1.close()
+        gc.collect()
+        del tb_asrttov
+
+    return
+
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+def main_Process_sieron_2snowhabits(instrument, HHtime, mp_version, server, skipProfs, isnow, iagg): 
+
+    if (mp_version == 6):
+      mp_physics = 'WRF-WSM6'
+
+    plotpath, folders = config_folders(server)
+    
+    # Select server and folder locations
+    #--------------------------------------------------------------------------
+    if 'yakaira' in server: 
+        upfolder     = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/'
+        sys.path.insert(1,'/home/vito.galligani/datosmunin3/Work/Studies/HAILCASE_10112018/src')
+        processedFolder = '/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/Processed/'+mp_physics
+      
+    elif 'cnrm' in server:
+        upfolder    = '/home/galliganiv/'   
+        sys.path.insert(1,'/home/galliganiv/ACMS_hail/src')
+        processedFolder = '/home/galliganiv/Work/HAILCASE_10112018/RTTOVinout/Processed/'+mp_physics
+
+    # Select instrument configurations
+    #--------------------------------------------------------------------------
+    if 'MHS' in instrument: 
+        nchan = 5
+    elif 'AMSR' in instrument:
+        nchan = 14
+        
+    #--------------------------------------------------------------------------
+    # server dependent files    
+    from package_functions import pressure2height
+    import package_functions as funs
+    
+    if mp_version == 6:
+        mp_physics = 'WRF-WSM6'
+        ncfile     = upfolder+'WRFOUT/WSM6_domain3_NoahMP/wrfout_d02_2018-11-10_'+HHtime+':00'
+        ncdata     = Dataset(ncfile,'r') 
+        [qr, qs, qi, qc, qg, qr_int, qs_int, qi_int, qc_int, qg_int] = funs.get_q_ints6(ncdata)
+
+    #------        
+    # Load all profiles
+    A    = read_wrf(ncfile)
+    toti = A['XLONG'].shape[0]
+    totj = A['XLONG'].shape[1]       
+    lats = np.zeros(A['XLONG'].shape); lats[:]=np.nan
+    lons = np.zeros(A['XLONG'].shape); lons[:]=np.nan
+    rows, cols = A['XLONG'].shape
+    shape_ = A['XLONG'].shape
+ 
+    #--- eqmassWSM6_rsg_s10g2: equal mass PSD consistency with WRF and 
+    # read for all liu - liu combinations w/ snow and grau
+    # default cloud overlap settings as above (+renormalization)
+    #exp_asrttov_rsgliu = eqmass_exp_one(folders, outfoldereq, mp_physics, HHtime, instrument, '_WSM6_sieron_rsg', nchan, isnow, igrau)
+
+    # main output folder
+    main_folder = folders['read_out_dir']+mp_physics+'/'
+    file_folder='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/WRF-WSM6/RTTOVsieron/'
+    exp_asrttov_rsgliu =  np.genfromtxt(file_folder+'2snowhabits/output_tb_allsky__WSM6_rsgs_2snowhabits_sliu'+str(isnow)+'grausp_aggregatesliu'+str(iagg)) 
+    
+    counter = 0
+    rttov_counter = 0
+    tb_asrttov = np.zeros( (nchan,rows,cols) );   tb_asrttov[:]=np.nan     
+    for idx, (i,j) in enumerate(np.ndindex(shape_)):
+        lats[i,j] = A['XLAT'].data[i,j]
+        lons[i,j] = A['XLONG'].data[i,j]
+        
+        if idx in skipProfs:
+            tb_asrttov[:,i,j] = np.nan
+        
+        else:
+            tb_asrttov[:,i,j] = exp_asrttov_rsgliu[rttov_counter-1,:]
+            rttov_counter=rttov_counter+1
+                    
+    # Pre-process like this if MHS                
+    if 'MHS' in instrument: 
+                    
+        das1 = T2P.MHS_as_sims(lons, lats, tb_asrttov[:,:,:], plotpath, server, 'rsgs_2snowhabits_sliu'+str(isnow)+'grausp_aggregatesliu'+str(iagg))
+        das1.to_netcdf(processedFolder+'/'+'rttov_processed_allsky_sieron_2snowhabits_rssg_sliu'+str(isnow)+'grausp_aggregatesliu'+str(iagg)+'.nc', 'w')
+        das1.close()
+        gc.collect()
+        del tb_asrttov
+
+    return
 
 
 
@@ -960,12 +1134,6 @@ def main_Process_Expliu_iwc_grausp(instrument, HHtime, mp_version, server, skipP
     return
 
 
-
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-#main_makeProfs('MHS', '20:30', 6, 'cnrm')
-#main_Process_cs_andWRF('MHS', '20:30', 6, 'yakaira')
-
 #--------------------------------------------
 def main(isnow, igrau, eqMass_do):
     
@@ -1010,8 +1178,45 @@ def main_sieron(isnow, igrau):
     main_Process_sieron('MHS', '20:30', 6, server, skipProfs, isnow=isnow, igrau=igrau)
     print('Finished running for isnow: '+str(isnow)+' and igrau: '+str(igrau))
 
+def main_sieron_grausp(isnow):
+    
+    server = 'yakaira'
+    skipProfs = filter_pixels_monotonic(6, '20:30', server)   
+    main_Process_sieron_grausp('MHS', '20:30', 6, server, skipProfs, isnow=isnow)
+    print('Finished running for isnow: '+str(isnow))    
+
+def main_sieron_2snowhabits(isnow, iagg):
+    
+    server = 'yakaira'
+    skipProfs = filter_pixels_monotonic(6, '20:30', server)   
+    main_Process_sieron_2snowhabits('MHS', '20:30', 6, server, skipProfs, isnow=isnow, iagg=iagg)
+    print('Finished running for isnow: '+str(isnow)+' and aggregates: '+str(iagg))
+    
+# =============================================================================
+# THIS SUBSECTION IS TO MAKE_PROFS:
+if __name__ == "__main__":
+    main_makeProfs('MHS', '20:00', 6.1, 'yakaira', 60) # note for the other older simulatiosn half_p_levels=45 
+    #main_makeProfs('MHS', '20:30', 6, 'yakaira', 60) # note for the other older simulatiosn half_p_levels=45 
 
 # =============================================================================
+    
+    
+# =============================================================================
+# THIS SUBSECTION IS TO PROCESS SIERON 2SNOW HABITS EXPERIMETNS
+# =============================================================================
+# main_sieron_2snowhabits(2,8)
+# main_sieron_2snowhabits(2,9)
+# main_sieron_2snowhabits(2,10)
+# main_sieron_2snowhabits(5,8)
+# main_sieron_2snowhabits(5,9)
+# main_sieron_2snowhabits(5,10)
+# =============================================================================
+
+# for issp in range(11):
+#     main_sieron_grausp(issp)
+# =============================================================================
+    
+
 ##---- processs selected sieron simulations! s9 y s3! 
 #for issp in range(11):
 #  main_sieron(3, issp)
@@ -1064,14 +1269,17 @@ def main_sieron(isnow, igrau):
 # main_noiwc(3, ieqMass, 'onlygrau')  # ojo que aca cambien para que sea rain
 
 
-if __name__ == "__main__":
+
+    
+    
+    
 #  if len(sys.argv) < 5:
 #         print("Usage: python your_script.py <isnow> <igrau> <?>")
 #         sys.exit(1)
     
-    isnow = int(sys.argv[1])   # or float() if needed
-    igrau = int(sys.argv[2])   # or float() if needed
-    main_sieron(isnow,igrau)
+    #isnow = int(sys.argv[1])   # or float() if needed
+    #igrau = int(sys.argv[2])   # or float() if needed
+    #main_sieron(isnow,igrau)
 #     ieqMass =  int(sys.argv[3]) 
 #     iwcname =  str(sys.argv[4]) 
 #     #main_basic()

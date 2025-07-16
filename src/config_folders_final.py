@@ -14,7 +14,7 @@ def config_folders(server):
         #        'initcond_fromwrf_domain3_WSM6_d01P3_54', 'P3_3MOM_LF_domain_noNoah','P3mp54_domain3_YSU_noNoahMP', 'WSM6_domain3_plevels', 'P3_1domain']
         
         # EXPS que analizo finalmente para el newERA5 and oldERA5 w/ ungrib:
-        EXPs = ['WSM6_1domain', 'P3_1domain', 'P3_1domain_15hrs', 'WSM6_1domain_15hrs', 'P3_1domain_15hrs_newERA5', 'WSM6_1domain_15hrs_newERA5']            
+        EXPs = ['WSM6_1domain', 'P3_1domain', 'P3_1domain_15hrs', 'WSM6_1domain_15hrs'] #, 'P3_1domain_15hrs_newERA5', 'WSM6_1domain_15hrs_newERA5']            
                 
         
         
@@ -47,8 +47,18 @@ def config_folders(server):
         # 1 domain after talk with Maru Dillon 
         folders['P3_1domain'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest/'
         folders['WSM6_1domain'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest/'
+        
         folders['P3_1domain_15hrs'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest_15hrs/'
         folders['WSM6_1domain_15hrs'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest_15hrs/'
+        
+        folders['WSM6_1domain_15hrs_96plevels'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest_15hrs_96plevels/'        
+        folders['P3_1domain_15hrs_96plevels'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest_15hrs_96plevels/'        
+
+
+        folders['WSM6_1domain_12hrs'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest_12hrs/'        
+        folders['P3_1domain_12hrs'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest_12hrs/'
+        
+        
         folders['P3_1domain_15hrs_newERA5'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/P3_1domaintest_15hrs_newERA5/' 
         folders['WSM6_1domain_15hrs_newERA5'] ='/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/WRFOUT_1domain/WSM6_1domaintest_15hrs_newERA5/' 
         #--------------------------------------------------------------------------------------------------------------------------------------------

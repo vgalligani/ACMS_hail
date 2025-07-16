@@ -811,7 +811,7 @@ def plot_ZH1km_WRF(EXP, title, domain, servidor, folders):
     ncfile       = Dataset(filename,'r')        
     z            = wrf.getvar( ncfile,"z") 
     zh           = wrf.getvar(ncfile, "REFL_10CM")
-    REFL_10CM    = wrf.interplevel(zh, z, 3000)
+    REFL_10CM    = wrf.interplevel(zh, z, 1000)
     lat          = wrf.getvar( ncfile,"lat") 
     lon          = wrf.getvar( ncfile,"lon")
 
@@ -857,7 +857,7 @@ def plot_ZH1km_WRF(EXP, title, domain, servidor, folders):
     
     #ax.text(x=-65, y=-34.9, s='120 and 220 km radar rings')
     #plt.show()
-    fig.savefig(save_dir_compare+'/'+EXP+'/WRF_ZH3km_'+domain+'_ZOOM_general_evolution_'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
+    fig.savefig(save_dir_compare+'/'+EXP+'/WRF_ZH1km_'+domain+'_ZOOM_general_evolution_'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
     plt.close()
     
     return
@@ -903,7 +903,7 @@ def plot_ZH1km_WRFdate(EXP, title, domain, servidor, folders, date):
     ncfile       = Dataset(filename,'r')        
     z            = wrf.getvar( ncfile,"z") 
     zh           = wrf.getvar(ncfile, "REFL_10CM")
-    REFL_10CM    = wrf.interplevel(zh, z, 3000)
+    REFL_10CM    = wrf.interplevel(zh, z, 1000)
     lat          = wrf.getvar( ncfile,"lat") 
     lon          = wrf.getvar( ncfile,"lon")
 
@@ -948,7 +948,7 @@ def plot_ZH1km_WRFdate(EXP, title, domain, servidor, folders, date):
     
     #ax.text(x=-65, y=-34.9, s='120 and 220 km radar rings')
     #plt.show()
-    fig.savefig(save_dir_compare+'/'+EXP+'/WRF_ZH3km_'+domain+'_ZOOM_general_evolution_'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
+    fig.savefig(save_dir_compare+'/'+EXP+'/WRF_ZH1km_'+domain+'_ZOOM_general_evolution_'+title+'.png', dpi=300,transparent=False,bbox_inches='tight')
     plt.close()
     
     return
@@ -1289,6 +1289,59 @@ def plot_domain(server, exp):
     plt.close()
  
     return
+
+
+def plot_domain_curso(server, exp):
+    
+    
+    folders=config_folders_final.config_folders(server)
+    save_dir = folders['save_dir_compare']
+
+    fn = '/home/vito.galligani/Work/Tools/etopo1_bedrock.nc'
+    ds = nc.Dataset(fn)
+    topo_lat = ds.variables['lat'][:]
+    topo_lon = ds.variables['lon'][:]
+    topo_dat = ds.variables['Band1'][:]/1e3
+    
+    prov = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/provincias.txt", delimiter='')
+    suda = np.genfromtxt("/home/vito.galligani/Work/Tools/Maps/samerica.txt", delimiter='')
+
+    folders=config_folders_final.config_folders('yakaira')
+    
+    ncfile_d01 = Dataset( folders[exp]+'wrfout_d01_2018-11-10_20:00:00','r')     
+    
+    latd01          = wrf.getvar( ncfile_d01,"lat") 
+    lond01          = wrf.getvar( ncfile_d01,"lon")
+
+    LANDMASK    = wrf.getvar(ncfile_d01, "LANDMASK")
+        
+    lonmin = lond01.min()
+    latmin = latd01.min()
+    lonmax = lond01.max()
+    latmax = latd01.max()
+    vertices = [(lonmin,latmin),(lonmax,latmin),(lonmax,latmax),(lonmin,latmax)]
+    polygon = Polygon(vertices, closed=True, edgecolor='r', facecolor='none', linewidth=4)
+    
+    fig, ax = plt.subplots(figsize=(8,8)) 
+    #pcm = ax.pcolormesh(lond01, latd01, LANDMASK);
+    pcm = ax.pcolormesh(topo_lon, topo_lat, topo_dat, cmap='terrain', vmin=0, vmax=6.5);
+    cbar = plt.colorbar(pcm, ax=ax, shrink=1,  label='Terrain Height (km)')
+    
+    ax.add_patch(polygon)
+    ax.plot(prov[:,0],prov[:,1],color='k'); 
+    ax.plot(suda[:,0],suda[:,1],color='k'); 
+
+    ax.set_ylim([-43,-20])
+    ax.set_xlim([-80,-45])
+    ax.set_title('WRF domain')
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    plt.show()
+    fig.savefig(save_dir+'/domain_'+exp+'WRF.png', dpi=300,transparent=False)
+    plt.close()
+ 
+    return
+
 
 
 #------------------------------------------------------------------------------
@@ -2082,14 +2135,19 @@ def run_1domaintets(EXPs):
     date =  '2018-11-11' 
 
     for EXP in EXPs:
+        print('Running experiment: '+EXP)
+        if 'WSM6' in EXP:
+            mp = 6
+        elif 'P3' in EXP:
+            mp = 54
         for h in range(18, 23):
             for m in range(0, 60, 30):
                 plot_ZH1km_WRF(EXP, f"{h}:{m:02d}", 'd01', 'yakaira', folders)  
-                plot_WRF_intqx(EXP, f"{h}:{m:02d}", 6, folders, 'd01')
-                plot_ZH1_COLMAX_WRFdate(EXP, f"{h}:{m:02d}", folders, 'd01', '2018-11-10')
+                #plot_WRF_intqx(EXP, f"{h}:{m:02d}", mp, folders, 'd01')
+                #plot_ZH1_COLMAX_WRFdate(EXP, f"{h}:{m:02d}", folders, 'd01', '2018-11-10')
 
 
-        plot_WRF_intqx(EXP,"23:30", 6, folders, 'd01')
+        #plot_WRF_intqx(EXP,"23:30", mp, folders, 'd01')
 
         plot_ZH1km_WRF(EXP, "23:30", 'd01', 'yakaira', folders)
         plot_ZH1km_WRFdate(EXP, "00:00", 'd01', 'yakaira', folders, date)   
@@ -2097,11 +2155,11 @@ def run_1domaintets(EXPs):
         plot_ZH1km_WRFdate(EXP, "01:00", 'd01', 'yakaira', folders, date)   
         plot_ZH1km_WRFdate(EXP, "01:30", 'd01', 'yakaira', folders, date)
             
-        plot_ZH1_COLMAX_WRFdate(EXP, "23:30", folders, 'd01', '2018-11-10')
-        plot_ZH1_COLMAX_WRFdate(EXP, "00:00", folders, 'd01', date)
-        plot_ZH1_COLMAX_WRFdate(EXP, "00:30", folders, 'd01', date)
-        plot_ZH1_COLMAX_WRFdate(EXP, "01:00", folders, 'd01', date)
-        plot_ZH1_COLMAX_WRFdate(EXP, "01:30", folders, 'd01', date)
+        # plot_ZH1_COLMAX_WRFdate(EXP, "23:30", folders, 'd01', '2018-11-10')
+        # plot_ZH1_COLMAX_WRFdate(EXP, "00:00", folders, 'd01', date)
+        # plot_ZH1_COLMAX_WRFdate(EXP, "00:30", folders, 'd01', date)
+        # plot_ZH1_COLMAX_WRFdate(EXP, "01:00", folders, 'd01', date)
+        # plot_ZH1_COLMAX_WRFdate(EXP, "01:30", folders, 'd01', date)
 
 
     return
@@ -2303,8 +2361,11 @@ def run_cnrm():
     return
 
 #-----------------------------------------------------------------
-#run_1domaintets(['P3_1domain', 'P3_1domain_15hrs','WSM6_1domain_15hrs']) #'WSM6_1domain', 
-run_1domaintets(['WSM6_1domain_15hrs']) 
+#run_1domaintets(['P3_1domain','WSM6_1domain'])   #'WSM6_1domain_15hrs', 'P3_1domain_15hrs'
+#run_1domaintets(['WSM6_1domain_15hrs']) 
+
+plot_domain_curso('yakaira', 'WSM6_1domain')
+
 
 # EXPs = ['WSM6_1domain', 'P3_1domain', 'P3_1domain_15hrs', 'WSM6_1domain_15hrs', 'P3_1domain_15hrs_newERA5', 'WSM6_1domain_15hrs_newERA5']            
 
