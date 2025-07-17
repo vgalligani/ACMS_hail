@@ -319,7 +319,7 @@ def main_Process(instrument, HHtime, mp_version, server, allskyfile, expname, rt
         int_titles = ['qr','qc','qi','qs','qg']
         
         # RTTOVout folders and file. 
-        outfolder = f'/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/WRFWSM6_YSU12hr/rttov_{rttov_approach}/'
+        outfolder = f'/home/vito.galligani/datosmunin3/Work/HAILCASE_10112018_datos/RTTOVout/WRFWSM6_YSU12hr/rttov_{rttov_approach}/tests/'
         skipProfs = filter_pixels_monotonic(mp_version, '20:00', server)   
     
     #--------------------------------------------------------------------------
@@ -407,22 +407,19 @@ if __name__ == "__main__":
     #main_Process_cs_andWRF('MHS', '20:00', 6.1, 'yakaira')
     
     exp = ''
-    for isnow in range(5,11):
-        for igrau in [8,9,10]:
-            # rttov eqmass: 
-                allskyfile = f'sliu{isnow}_gliu{igrau}'+exp            
-                expname    = 'allsky_liusnow'+str(isnow)+'_liugrau'+str(igrau)+exp
-                main_Process('MHS', '20:30', 6.1, 'yakaira', allskyfile, expname, 'eqmass')
-                plt.close()
-                print('Finished allsky for isnow: '+ str(isnow)+ ' and grau: '+ str(igrau))  
+    isnow1 = 8
+    isnow2 = 9
+    
+    for igrau in [5]: #5
+        allskyfile = f'sliu{isnow1}_gliu{igrau}_aggregates{isnow2}'+'2snowprofile_temp2'+exp            
+        expname    = 'allsky__liusnow'+str(isnow1)+'gliu'+str(igrau)+'_aggregates'+str(isnow2)+'_2snowprofile_temp2'
+        main_Process('MHS', '20:30', 6.1, 'yakaira', allskyfile, expname, 'sieron')
+        plt.close()
+        print('Finished allsky for igrau: '+ str(igrau))  
         
     
     
     
-    
-    
-    
-
         
         
 
